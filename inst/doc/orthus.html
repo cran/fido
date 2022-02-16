@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Justin Silverman" />
+
+
+<title>Joint Modeling (e.g., Multiomics) with fido::Orthus</title>
+
+<script src="data:application/javascript;base64,Ly8gUGFuZG9jIDIuOSBhZGRzIGF0dHJpYnV0ZXMgb24gYm90aCBoZWFkZXIgYW5kIGRpdi4gV2UgcmVtb3ZlIHRoZSBmb3JtZXIgKHRvCi8vIGJlIGNvbXBhdGlibGUgd2l0aCB0aGUgYmVoYXZpb3Igb2YgUGFuZG9jIDwgMi44KS4KZG9jdW1lbnQuYWRkRXZlbnRMaXN0ZW5lcignRE9NQ29udGVudExvYWRlZCcsIGZ1bmN0aW9uKGUpIHsKICB2YXIgaHMgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCJkaXYuc2VjdGlvbltjbGFzcyo9J2xldmVsJ10gPiA6Zmlyc3QtY2hpbGQiKTsKICB2YXIgaSwgaCwgYTsKICBmb3IgKGkgPSAwOyBpIDwgaHMubGVuZ3RoOyBpKyspIHsKICAgIGggPSBoc1tpXTsKICAgIGlmICghL15oWzEtNl0kL2kudGVzdChoLnRhZ05hbWUpKSBjb250aW51ZTsgIC8vIGl0IHNob3VsZCBiZSBhIGhlYWRlciBoMS1oNgogICAgYSA9IGguYXR0cmlidXRlczsKICAgIHdoaWxlIChhLmxlbmd0aCA+IDApIGgucmVtb3ZlQXR0cmlidXRlKGFbMF0ubmFtZSk7CiAgfQp9KTsK"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">
+/* for pandoc --citeproc since 2.11 */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+<link rel="stylesheet" href="data:text/css,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" type="text/css" />
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Joint Modeling (e.g., Multiomics) with fido::Orthus</h1>
+<h4 class="author">Justin Silverman</h4>
+
+
+<div id="TOC">
+<ul>
+<li><a href="#fidoorthus-the-model">fido::orthus, the model</a></li>
+<li><a href="#joint-modeling-of-microbial-16s-data-and-metabolomics">Joint modeling of Microbial 16S data and Metabolomics</a></li>
+<li><a href="#investigate-model-results">Investigate Model Results</a></li>
+<li><a href="#qualifications-and-caution">Qualifications and Caution</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+</div>
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(fido)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(phyloseq)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">48482</span>)</span></code></pre></div>
+<p>If you have not already done so, I would read through the <em>pibble</em> vignette before this one.</p>
+<div id="fidoorthus-the-model" class="section level1">
+<h1>fido::orthus, the model</h1>
+<p>fido can be used for jointly modeling multivariate count data and multivariate Gaussian data. For example, this would be a reasonable model to jointly model 16S microbiome data and metabolomics data jointly. Because of the “two-headed” nature of this model, e.g., two observed data-sets, I named this model <em>orthus</em>, <a href="https://en.Wikipedia.org/wiki/Orthrus">a two-headed dog and brother of Cerberus in Greek Mythology</a>. The <em>orthus</em> model can be written as</p>
+<p><span class="math display">\[
+\begin{align}
+Y_j &amp; \sim \text{Multinomial}\left(\pi_j \right)  \\
+\pi_j &amp; = \phi^{-1}(\eta_j) \\
+\begin{bmatrix}\eta_j \\ Z_j \end{bmatrix} &amp;\sim N(\Lambda X, \Sigma) \\
+\Lambda &amp;\sim  N(\Theta, \Sigma, \Gamma) \\
+\Sigma &amp;\sim W^{-1}(\Xi, \upsilon) 
+\end{align}
+\]</span></p>
+<p>Note this looks nearly identical to the <em>pibble</em> model but we have appended the second (Gaussian) dataset (<span class="math inline">\(Z\)</span>) onto <span class="math inline">\(\eta\)</span>. In doing this, the definition of <span class="math inline">\(\Lambda\)</span> changes (it is now larger with the bottom rows dictating how the covariates <span class="math inline">\(X\)</span> influence the second dataset). Similarly, <span class="math inline">\(\Sigma\)</span> now is much larger and can be though of as <span class="math display">\[
+\Sigma = \begin{bmatrix} \Sigma_{(\eta, \eta)} &amp; \Sigma_{(\eta, Z)} \\
+                          \Sigma_{(Z, \eta)} &amp; \Sigma_{(Z, Z)}\end{bmatrix}
+\]</span> where <span class="math inline">\(\Sigma_{(\eta, \eta)}\)</span> describes the covariance between log-ratios (e.g., the covariance among the multinomial categories in log-ratio space), <span class="math inline">\(\Sigma_{(Z, Z)}\)</span> describes the covariance between the dimensions of <span class="math inline">\(Z\)</span> (e.g., between metabolites if Z is metabolomics data), and <span class="math inline">\(\Sigma_{(\eta, Z)} = \Sigma_{(Z, \eta)}^T\)</span> represents the covariance between log-ratios and dimensions of <span class="math inline">\(Z\)</span> (e.g., between microbial taxa and metabolites). Similar to <span class="math inline">\(\Sigma\)</span> and <span class="math inline">\(\Lambda\)</span>, the parameters <span class="math inline">\(\Xi\)</span> and <span class="math inline">\(\Theta\)</span> undergo a similar expansion to accommodate the second dataset.</p>
+</div>
+<div id="joint-modeling-of-microbial-16s-data-and-metabolomics" class="section level1">
+<h1>Joint modeling of Microbial 16S data and Metabolomics</h1>
+<p>To demonstrate <em>orthus</em> I will perform a toy analysis on data from <span class="citation">Kashyap et al. (2013)</span> and made available by <span class="citation">Callahan et al. (2016)</span> as part of their recently published microbiome data analysis workflow <span class="citation">(Callahan et al. 2016)</span>. I follow the data preprocessing of <span class="citation">Callahan et al. (2016)</span> we just don’t drop taxa but instead amalgamate those that don’t pass filtering to a category called “other.” I do this to maintain the proper variance in the multinomial model.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>metab_path <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">&quot;extdata/Kashyap2013&quot;</span>, <span class="st">&quot;metabolites.csv&quot;</span>, <span class="at">package=</span><span class="st">&quot;fido&quot;</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>microbe_path <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">&quot;extdata/Kashyap2013&quot;</span>, <span class="st">&quot;microbe.rda&quot;</span>, <span class="at">package=</span><span class="st">&quot;fido&quot;</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>metab <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(metab_path, <span class="at">row.names =</span> <span class="dv">1</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>metab <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(metab)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>microbe <span class="ot">&lt;-</span> <span class="fu">get</span>(<span class="fu">load</span>(microbe_path))</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="do">## Preprocessing ##</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Metabolite Preprocessing</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>keep_ix <span class="ot">&lt;-</span> <span class="fu">rowSums</span>(metab <span class="sc">==</span> <span class="dv">0</span>) <span class="sc">&lt;=</span> <span class="dv">3</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>metab <span class="ot">&lt;-</span> metab[keep_ix, ]</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co"># 16S Preprocesing - plus some weirdness to rename amalgamated category to &quot;other&quot;</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>keep_ix <span class="ot">&lt;-</span> <span class="fu">taxa_sums</span>(microbe) <span class="sc">&gt;</span> <span class="dv">4</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>keep_ix <span class="ot">&lt;-</span> keep_ix <span class="sc">&amp;</span> (<span class="fu">rowSums</span>(<span class="fu">otu_table</span>(microbe)<span class="sc">&gt;</span><span class="dv">2</span>)<span class="sc">&gt;</span><span class="dv">3</span>)</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>microbe <span class="ot">&lt;-</span> <span class="fu">merge_taxa</span>(microbe, <span class="fu">taxa_names</span>(microbe)[<span class="sc">!</span>keep_ix])</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>nms <span class="ot">&lt;-</span> <span class="fu">taxa_names</span>(microbe)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>rnm <span class="ot">&lt;-</span> <span class="fu">which</span>(<span class="fu">taxa_names</span>(microbe)<span class="sc">==</span><span class="fu">taxa_names</span>(microbe)[<span class="sc">!</span>keep_ix][<span class="dv">1</span>])</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>nms[rnm] <span class="ot">&lt;-</span> <span class="st">&quot;other&quot;</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="fu">taxa_names</span>(microbe) <span class="ot">&lt;-</span> nms</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(nms, rnm)</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="co"># bit of preprocessing </span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>metab <span class="ot">&lt;-</span> <span class="fu">log10</span>(<span class="dv">1</span> <span class="sc">+</span> metab)</span></code></pre></div>
+<p>Now I am going to do just a bit of processing to get data into a format for orthus. Note I have no extra metadata so we are just going to use an intercept in our model at this time.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">&lt;-</span> <span class="fu">otu_table</span>(microbe, <span class="at">taxa_are_rows=</span><span class="cn">TRUE</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>Z <span class="ot">&lt;-</span> metab <span class="co">#(metabolites are rows)</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">1</span>, <span class="dv">1</span>, phyloseq<span class="sc">::</span><span class="fu">nsamples</span>(microbe))</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># save dims for easy reference</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="fu">ncol</span>(Y)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>P <span class="ot">&lt;-</span> <span class="fu">nrow</span>(Z)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>Q <span class="ot">&lt;-</span> <span class="fu">nrow</span>(X)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>D <span class="ot">&lt;-</span> <span class="fu">nrow</span>(Y)</span></code></pre></div>
+<p>Now I am going to set up the priors. My priors are going to be similar to that of <em>pibble</em> but now we need to think about a prior for the covariance among the metabolites and between the metabolites and the log-ratios of the taxa. Remember, that priors must be defined in the <span class="math inline">\(ALR_D\)</span> (e.g., ALR with the reference being the D-th taxa; this may be changed in the future to make specifying priors more user friendly).</p>
+<p>I am going to form our prior for <span class="math inline">\(\Sigma\)</span> by specifying <span class="math inline">\(\upsilon\)</span> and <span class="math inline">\(\Xi\)</span>. I will specify that I have weak prior belief that the taxa are independent in terms of their log absolute abundance. We can translate this statement about covariance of log absolute abundance into a statement about log-ratio covariance by pre- and post-multiplying by the <span class="math inline">\(ALR_D\)</span> contrast matrix (which I refer to as <span class="math inline">\(GG\)</span> below). Additionally, I believe that there is likely no substantial covariance between the taxa and the metabolites and I assume the metabolites are likely independent.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>upsilon <span class="ot">&lt;-</span> (D<span class="dv">-1</span><span class="sc">+</span>P)<span class="sc">+</span><span class="dv">10</span> <span class="co"># weak-ish prior on covariance over joint taxa and metabolites</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>Xi <span class="ot">&lt;-</span> <span class="fu">diag</span>(D<span class="dv">-1</span><span class="sc">+</span>P)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>GG <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="fu">diag</span>(D<span class="dv">-1</span>), <span class="sc">-</span><span class="dv">1</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>Xi[<span class="dv">1</span><span class="sc">:</span>(D<span class="dv">-1</span>), <span class="dv">1</span><span class="sc">:</span>(D<span class="dv">-1</span>)] <span class="ot">&lt;-</span> GG<span class="sc">%*%</span><span class="fu">diag</span>(D) <span class="sc">%*%</span> <span class="fu">t</span>(GG)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>Xi <span class="ot">&lt;-</span> Xi <span class="sc">*</span> (upsilon<span class="sc">-</span>D<span class="sc">-</span>P) <span class="co"># this scales Xi to have the proper mean we wanted</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="fu">image</span>(Xi)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" /></p>
+<p>Note the structure of this prior, everything is independent but there is a moderate positive covariance between the log-ratios based on their shared definition in terms of the <span class="math inline">\(D\)</span>-th taxa.</p>
+<p>The other parts of the prior are less interesting. We are going to state that our mean for <span class="math inline">\(\Lambda\)</span> is centered about <span class="math inline">\(\mathbf{0}\)</span> and that the signal-to-noise ratio in the data is approximately 1 (this later part is specified by <span class="math inline">\(\Gamma=I\)</span>).</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>Gamma <span class="ot">&lt;-</span> <span class="fu">diag</span>(Q)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>Theta <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, D<span class="dv">-1</span><span class="sc">+</span>P, <span class="dv">1</span>)</span></code></pre></div>
+<p>Finally I fit the model.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">orthus</span>(Y, Z, X, <span class="at">Theta=</span>Theta, <span class="at">Gamma=</span>Gamma, <span class="at">Xi=</span>Xi, <span class="at">upsilon=</span>upsilon, <span class="at">n_samples=</span><span class="dv">1000</span>)</span></code></pre></div>
+<p>Next we are going to transform the log-ratios from <span class="math inline">\(ALR_D\)</span> to the <span class="math inline">\(CLR\)</span>. I have written all the transformation functions, <em>e.g.</em>, <code>to_clr</code> etc… to work on <code>orthusfit</code> objects in a similar manner to how they work on <code>pibblefit</code> objects. For <code>orthusfit</code> objects they only transform the log-ratio components of parameters leaving the other parts of inferred model parameters (<em>i.e.</em>, the parts associated with the metabolites) untouched.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">to_clr</span>(fit)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; orthusfit Object: </span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Number of Samples:      12 </span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Number of Categories:       114 </span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Number of Zdimensions:  405 </span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Number of Covariates:       1 </span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Number of Posterior Samples:    1000 </span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Contains Samples of Parameters:Eta  Lambda  Sigma</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Coordinate System:      clr</span></span></code></pre></div>
+</div>
+<div id="investigate-model-results" class="section level1">
+<h1>Investigate Model Results</h1>
+<p>There are a ton of ways to visualize the inferred model. I could make network diagrams relating taxa to taxa, taxa to metabolites and metabolites to metabolites. I could look at a low dimensional representation of joint covariance to create something very much akin to canonical correlation analysis (CCA). I could look at how well the metabolites predict the taxa and vice-versa. But for the sake of simplicity I will do something much simpler. Here I am just going to find a list of taxa metabolite covariances that the model is very confident about.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># First just look ath the cross-covariances fit by the model</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># (covariance between taxa in CLR coordinates and metabolites)</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># This requires that we extract the corner of Sigma. </span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>xcor <span class="ot">&lt;-</span> fit<span class="sc">$</span>Sigma[<span class="dv">1</span><span class="sc">:</span>D, D<span class="sc">:</span>(D<span class="dv">-1</span><span class="sc">+</span>P),]</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Initial preprocessing to speed up computation of posterior intervals</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co"># As there are a lot of cross-covariance terms we are going to first </span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co"># weed down the list of things we have to look at by first pass </span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co"># selecting only those taxa that have a large posterior mean for the covariance</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>xcor.mean <span class="ot">&lt;-</span> <span class="fu">apply</span>(xcor, <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>), mean)</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>to.analyze <span class="ot">&lt;-</span> <span class="fu">gather_array</span>(xcor.mean, cov, taxa, metabolite) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="sc">-</span><span class="fu">abs</span>(cov)) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  .[<span class="dv">1</span><span class="sc">:</span><span class="dv">1000</span>,] <span class="sc">%&gt;%</span> </span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">tm =</span><span class="fu">paste0</span>(taxa, <span class="st">&quot;_&quot;</span>, metabolite))</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Error in gather_array(xcor.mean, cov, taxa, metabolite): could not find function &quot;gather_array&quot;</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Subset Covariance to those we are interested in and calculate posterior </span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="co"># confidence intervals. </span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>xcor.summary <span class="ot">&lt;-</span> <span class="fu">gather_array</span>(xcor, cov, taxa, metabolite, iter) <span class="sc">%&gt;%</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">tm=</span><span class="fu">paste0</span>(taxa, <span class="st">&quot;_&quot;</span>, metabolite)) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(tm <span class="sc">%in%</span> to.analyze<span class="sc">$</span>tm) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">taxa =</span> <span class="fu">rownames</span>(Y)[taxa], <span class="at">metabolite =</span> <span class="fu">rownames</span>(Z)[metabolite]) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(taxa, metabolite) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise_posterior</span>(cov) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(mean) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(taxa <span class="sc">!=</span> <span class="st">&#39;other&#39;</span>) <span class="co"># we don&#39;t care about these</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Error in summarise_posterior(., cov): could not find function &quot;summarise_posterior&quot;</span></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Select those covariances where the model has high certainty (95%) that</span></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a><span class="co"># the true covariance is not zero. </span></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>xcor.summary <span class="sc">%&gt;%</span> </span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">sign</span>(p2<span class="fl">.5</span>)<span class="sc">==</span><span class="fu">sign</span>(p97<span class="fl">.5</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">abs</span>(mean) <span class="sc">&gt;</span> <span class="dv">2</span>)</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Error in filter(., sign(p2.5) == sign(p97.5)): object &#39;xcor.summary&#39; not found</span></span></code></pre></div>
+<p>So it looks there there are a few hundred covariances that we can be fairly confident about.</p>
+</div>
+<div id="qualifications-and-caution" class="section level1">
+<h1>Qualifications and Caution</h1>
+<p>Please note, I performed this analysis to demonstrate the use of <em>orthus</em> which is a model that I have been repeatedly asked for. I think its a cool model and could be quite useful in the right circumstances. But I would like to point out a few philosophical points about the analysis I performed above.</p>
+<p>First, I performed this analysis just to demonstrate <em>orthus</em>. I really don’t know the data showcased here. What is metabolite <code>206.0445922</code>? I have no idea. For some reason this is how the metabolites in that dataset were named. For the same reason I have left the taxa indexed by sequence variant number.</p>
+<p>Second (and more important), identifying relationships between taxa and metabolites (or between any two high-dimensional multivariate data-sets) is really difficult! Here we are looking at just 114 taxa and 405 but this leads to 46170 possible covariances and here we only have 12 samples! Yes <em>orthus</em> is a Bayesian model, and Yes, Bayesian models can be quite useful when there are more parameters than samples, but there is a limit of reasonability. Really, Bayesian models are great when you can perfectly capture your prior beliefs with your prior. But how often can that really be done perfectly? As such I would caution users, to use <em>orthus</em> carefully. Consider which metabolites and taxa you really care about and if you can, isolate your analyses to those.</p>
+<p>Alright, that’s probably enough philosophizing for an R package Vignette. I hope you enjoy <em>orthus</em>.</p>
+</div>
+<div id="references" class="section level1 unnumbered">
+<h1 class="unnumbered">References</h1>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-callahan2016" class="csl-entry">
+Callahan, Ben J, Kris Sankaran, Julia A Fukuyama, Paul J McMurdie, and Susan P Holmes. 2016. <span>“Bioconductor Workflow for Microbiome Data Analysis: From Raw Reads to Community Analyses.”</span> <em>F1000Research</em> 5.
+</div>
+<div id="ref-kashyap2013" class="csl-entry">
+Kashyap, Purna C, Angela Marcobal, Luke K Ursell, Samuel A Smits, Erica D Sonnenburg, Elizabeth K Costello, Steven K Higginbottom, et al. 2013. <span>“Genetically Dictated Change in Host Mucus Carbohydrate Landscape Exerts a Diet-Dependent Effect on the Gut Microbiota.”</span> <em>Proceedings of the National Academy of Sciences</em> 110 (42): 17059–64.
+</div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
