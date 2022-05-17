@@ -36,8 +36,9 @@ directly from cholesky form of inverse wishart (currently implemented as
 header in this library - see MatDist.h).
 }
 \examples{
-\donttest{
 # Sample prior of already fitted  pibblefit object
+
+\dontrun{
 sim <- pibble_sim()
 attach(sim)
 fit <- pibble(Y, X)
@@ -49,6 +50,5 @@ m <- pibblefit(N=as.integer(sim$N), D=as.integer(sim$D), Q=as.integer(sim$Q),
                 Xi=Xi, Gamma=Gamma, Theta=Theta, X=X, 
                 coord_system="alr", alr_base=D)
 m <- sample_prior(m)
-plot(m) # plot prior distribution (defaults to parameter Lambda) 
-}
+plot(m) # plot prior distribution (defaults to parameter Lambda)}
 }

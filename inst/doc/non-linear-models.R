@@ -6,31 +6,33 @@ knitr::opts_chunk$set(
 
 ## ----message=FALSE, warning=FALSE, paged.print=FALSE--------------------------
 library(fido)
-library(phyloseq)
 library(dplyr)
+library(tidyr)
 library(ggplot2)
 data(mallard_family)
 
 # Just take vessel 1
-mallard_family <- prune_samples(sample_data(mallard_family)$Vessel==1, mallard_family)
-
+sample.ids <- mallard_family$sample_data[mallard_family$sample_data$Vessel == 1,]
 # Just take hourly samples
-mallard_family <- prune_samples((sample_data(mallard_family)$time > "2015-11-20 15:00:00 UTC") &
-                      (sample_data(mallard_family)$time < "2015-11-25 16:00:00 UTC"), mallard_family)
+sample.ids <- sample.ids[(sample.ids$time > "2015-11-20 15:00:00 UTC") & (sample.ids$time < "2015-11-25 16:00:00 UTC"),]
+
+# Subsetting the sample data and OTU data
+subset.sample_data <- mallard_family$sample_data[mallard_family$sample_data$X.SampleID %in% sample.ids$X.SampleID,]
+
+subset.otu_table <- mallard_family$otu_table[rownames(mallard_family$otu_table) %in% sample.ids$X.SampleID,]
 
 # Order samples - to make plotting easy later
-o <- order(sample_data(mallard_family)$time)
-otu_table(mallard_family) <- otu_table(mallard_family)[o,]
-sample_data(mallard_family) <- sample_data(mallard_family)[o,]
+o <- order(subset.sample_data$time)
+subset.otu_table <- subset.otu_table[o,]
+subset.sample_data <- subset.sample_data[o,]
 
 # Extract Data / dimensions from Phyloseq object
-Y <- t(as(otu_table(mallard_family), "matrix"))
-rownames(Y) <- taxa_names(mallard_family)
-D <- ntaxa(mallard_family)
-N <- nrow(sample_data(mallard_family))
+Y <- t(as(subset.otu_table, "matrix"))
+D <- nrow(Y)
+N <- nrow(subset.sample_data)
 
 # X in hours
-X <- as.numeric(sample_data(mallard_family)$time)
+X <- as.numeric(subset.sample_data$time)
 X <- t((X-min(X)) / 3600)
 
 ## -----------------------------------------------------------------------------
@@ -56,7 +58,7 @@ X_predict <- t(1:(max(X)))
 predicted <- predict(fit.clr, X_predict, jitter=1) 
 
 ## ----fig.height=5, fig.width=7------------------------------------------------
-family_names <- as(tax_table(mallard_family)[,"Family"], "vector")
+family_names <- as(mallard_family$tax_table$Family, "vector")
 Y_clr_tidy <- clr_array(Y+0.65, parts = 1) %>% 
   gather_array(mean, coord, sample) %>% 
   mutate(time = X[1,sample], 

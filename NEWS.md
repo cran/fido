@@ -1,3 +1,11 @@
+# fido 1.0.1
+
+bug fixes 
+
+* Changing phyloseq from imports to depends, was causing issues installing from CRAN. 
+* Fixing bug in configure.ac that was causing openmp parallelization to not work on some machines. 
+* Changing the mallard data to be a list as opposed to a phyloseq object.
+
 # fido 1.0.0
 
 More changes to make the final push for CRAN! Changes include:
