@@ -1,10 +1,15 @@
+# fido 1.0.2
+
+bug fixes
+
+* Removing a timing test because it is irrelevant and can fail under certain set-ups.
+
 # fido 1.0.1
 
 bug fixes 
 
 * Changing phyloseq from imports to depends, was causing issues installing from CRAN. 
 * Fixing bug in configure.ac that was causing openmp parallelization to not work on some machines. 
-* Changing the mallard data to be a list as opposed to a phyloseq object.
 
 # fido 1.0.0
 

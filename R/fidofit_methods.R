@@ -812,8 +812,6 @@ names_coords.pibblefit <- function(m){
 #' header in this library - see MatDist.h).  
 #' @examples 
 #' # Sample prior of already fitted  pibblefit object
-#' 
-#' \dontrun{
 #' sim <- pibble_sim()
 #' attach(sim)
 #' fit <- pibble(Y, X)
@@ -825,7 +823,7 @@ names_coords.pibblefit <- function(m){
 #'                 Xi=Xi, Gamma=Gamma, Theta=Theta, X=X, 
 #'                 coord_system="alr", alr_base=D)
 #' m <- sample_prior(m)
-#' plot(m) # plot prior distribution (defaults to parameter Lambda)}
+#' # plot(m) # plot prior distribution (defaults to parameter Lambda) 
 sample_prior.pibblefit <- function(m, n_samples=2000L, 
                                     pars=c("Eta", "Lambda", "Sigma"), 
                                     use_names=TRUE, ...){

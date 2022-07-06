@@ -1,13 +1,13 @@
-f545183ec74aff92a292d9935676ae99 *DESCRIPTION
+8cc09901fb899d3c9f08f57291bf3087 *DESCRIPTION
 4c5ed99db7e4ad00c59a0b1d8914856a *NAMESPACE
-72a151742025e7faa57bc5435bd51688 *NEWS.md
+9165f73d3d2584393a76f5e30e63dffb *NEWS.md
 d75d74703d729d1cb60e058ba52e3d32 *R/RcppExports.R
 e55f51f21161b2a48865e268e854a9c9 *R/bassetfit_s3.R
 0cac71563ba73563060e69f7619fc63e *R/driver-utils.R
 d86b2ce130aa11042fc0004685449165 *R/fido.R
 c0e026f216b6c49d775b26a4a5b3ffdc *R/fido_transforms.R
 3fecf561932c83da1956a0e201ed62a2 *R/fido_utils.R
-ed7045e9ed87f7ebaee603a700e50652 *R/fidofit_methods.R
+990bc54d433d3cf31edb59459db2f3e8 *R/fidofit_methods.R
 78ddfca11921b4add793540f5ec1fadc *R/fidofit_s3.R
 90f6bab35f23fc8ac04ea1652f87e55e *R/fit_basset.R
 0ad360fbb800ae8cf78dee16c15792f8 *R/fit_maltipoo.R
@@ -39,7 +39,7 @@ d3f1d3c5383e34e5e6241e529260bebf *inst/doc/introduction-to-fido.html
 3bc0d59428fd65969091eb58d8d870c0 *inst/doc/mitigating-pcrbias.html
 9485e6544a99976e5addcca790e666e3 *inst/doc/non-linear-models.R
 75459ae6640f70db6a0d79a8678a3c4f *inst/doc/non-linear-models.Rmd
-dea16456a8bd37368bd535dc214b2e70 *inst/doc/non-linear-models.html
+eee95d04d701aaef0f382272afced14f *inst/doc/non-linear-models.html
 20fdc0a3c87502eb3e6ef7fad61b90c1 *inst/doc/orthus.Rmd
 f95575a5815fa7503197491173f6486e *inst/doc/orthus.html
 e8c98e39c7a9fcb4b53cb90eb37e61cc *inst/doc/picking_priors.R
@@ -131,7 +131,7 @@ feab07525e3401787f6014235584fe8d *man/refit.Rd
 49064e97f3e275d527dcf4097d048a2f *man/req.orthusfit.Rd
 1d3e5d465c57b332b7cf9ef28c16340f *man/req.pibblefit.Rd
 c69b50cc36f103823d6cfa3d82177112 *man/sample_prior.Rd
-3a8b752ee809894f6d08a551670235b8 *man/sample_prior.pibblefit.Rd
+e325a9bd75f710cfdf5eb082cd086b4b *man/sample_prior.pibblefit.Rd
 a4c89713305c01df6cb570bd1ae2ed89 *man/store_coord.Rd
 c74871b45092df43e2dd5d063caf0fcb *man/summarise_posterior.Rd
 15a610f62716da78ef16b0fed97f92a3 *man/summary.Rd
@@ -175,7 +175,7 @@ dbddf29ebcec0a7ba07b5d161d853e9c *tests/testthat/test-multdirichletboot.R
 0ba3784ff9f1b8bafea8451249a818b2 *tests/testthat/test-numCores.R
 12eac4d8405e2f130ee2c23abeb32a28 *tests/testthat/test-orthus-transforms.R
 b76a206272e13ef5e03ef7405d151302 *tests/testthat/test-orthus.R
-766310ed4ff73722c41faa700c88867a *tests/testthat/test-pibble.R
+5761c3088dcee96d29799485eaeaee57 *tests/testthat/test-pibble.R
 d98b624bebe7f160b96de69547f5adf6 *tests/testthat/test-sylvester-speedups.R
 53bb490eac2bba9438465e137ab85629 *tests/testthat/test-transforms.R
 82adb512f1e642f4d83035e41c9d2fc2 *tests/testthat/test-utils.R
