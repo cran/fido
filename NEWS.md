@@ -1,8 +1,21 @@
+# fido 1.1.0
+
+* Updating the basset model to allow for additive Gaussian processes.
+* Updating the random seed generation.
+* Removed maltipoo as an export. There were a few small changes to names of internal maltipoo functions (e.g., "verify.maltipoo" became "verify_maltipoo").
+* Updating the configure script to a compile but that occured when OpenMP is present but R is not configured to use it.
+* Fixed a few small bugs (predicting with one sample; wrong constant; etc.).
+
 # fido 1.0.4
+
+* changing default optimizer (lbfgs rather than adam), adam is more sensitive to random seed
+* adding new r2 methods for calculating Bayesian R2 for pibble and basset models
+* predict.bassetfit now accepts a newdata=NULL argument to predict on training set
 
 bug fixes
 
-* Editing numCores test.
+* fixing a few discrepancies with base R commands (print, summary, etc).
+
 
 # fido 1.0.3
 

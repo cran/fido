@@ -3,6 +3,7 @@
 # EDIT: who are we kidding we didn't take inspiration from the above, we just shamelessly stole and minimally
 #       modified the RcppArmadillo configure.ac file that others have perfected.
 #       https://github.com/RcppCore/RcppArmadillo/blob/master/configure.ac
+#
 
 AC_PREREQ([2.69])
 AC_INIT(fido, m4_esyscmd_s([awk '/^Version:/ {print $2}' DESCRIPTION]))
@@ -45,26 +46,24 @@ mkdir -p "${BUILDDIR}"
 owd=$(pwd)
 cd "${BUILDDIR}"
 
-cat <<EOF > test-omp.cpp
+# The configure script:
+cat > test-omp.cpp <<EOF
 #include <omp.h>
-int main() {
-  return omp_get_num_threads();
+extern "C" void configtest(int * arg) {
+  *arg = omp_get_num_threads();
 }
 EOF
-
-## Execute R CMD SHLIB.
-"${R_HOME}/bin/R" CMD SHLIB test-omp.cpp >/dev/null 2>&1
-if test x"$?" = x"0"; then
-    AC_MSG_RESULT([yes])
-    openmp_already_works="yes"
-else
-    AC_MSG_RESULT([no])
-fi
+# Without the following you're relying on the GNU/Linux-like behaviour
+# w.r.t. undefined symbols (see WRE 1.2.1.1):
+cat > Makevars <<EOF
+PKG_CXXFLAGS = \$(SHLIB_OPENMP_CXXFLAGS)
+PKG_LIBS = \$(SHLIB_OPENMP_CXXFLAGS)
+EOF
+R CMD SHLIB test-omp.cpp
 
 ## Go back home.
 cd "${owd}"
 rm -rf "${BUILDDIR}"
-
 
 ## additional reporting/diagnostics for mac don't trust the above approach for mac
 RSysinfoName=$("${R_HOME}/bin/Rscript" --vanilla -e 'cat(Sys.info()[["sysname"]])')
@@ -75,7 +74,6 @@ if test x"${RSysinfoName}" = x"Darwin"; then
 else
    AC_MSG_RESULT([not found])
 fi # end mac check
-
 
 ## If the above checks failed, then perform other heuristics
 ## based on the compiler version, etc.

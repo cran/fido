@@ -9,6 +9,7 @@
 using namespace Rcpp;
 using Eigen::Map;
 using Eigen::MatrixXd;
+using Eigen::ArrayXd;
 using Eigen::ArrayXXd;
 using Eigen::VectorXd;
 
@@ -24,7 +25,7 @@ using Eigen::VectorXd;
 //' @param ThetaX D-1 x N matrix formed by Theta*X (Theta is Prior mean 
 //'    for regression coefficients) 
 //' @param KInv D-1 x D-1 precision matrix (inverse of Xi)
-//' @param AInv N x N precision matrix given by (I_N + X'*Gamma*X)^{-1}
+//' @param AInv N x N precision matrix given by \eqn{(I_N + X'*Gamma*X)^{-1}}
 //' @param init D-1 x N matrix of initial guess for eta used for optimization
 //' @param n_samples number of samples for Laplace Approximation (=0 very fast
 //'    as no inversion or decomposition of Hessian is required)
@@ -42,12 +43,12 @@ using Eigen::VectorXd;
 //' @param verbose_rate (ADAM) rate to print verbose stats to screen
 //' @param decomp_method decomposition of hessian for Laplace approximation
 //'   'eigen' (more stable-slightly, slower) or 'cholesky' (less stable, faster, default)
-//' @param optim_method (default:"adam") or "lbfgs"
+//' @param optim_method (default:"lbfgs") or "adam"
 //' @param eigvalthresh threshold for negative eigenvalues in 
 //'   decomposition of negative inverse hessian (should be <=0)
 //' @param jitter (default: 0) if >=0 then adds that factor to diagonal of Hessian 
 //' before decomposition (to improve matrix conditioning)
-//' @param multDirichletBoot if >0 (overrides laplace approximation) and samples
+//' @param multDirichletBoot if >0 then it overrides laplace approximation and samples
 //'  eta efficiently at MAP estimate from pseudo Multinomial-Dirichlet posterior.
 //' @param useSylv (default: true) if N<D-1 uses Sylvester Determinant Identity
 //'   to speed up calculation of log-likelihood and gradients. 
@@ -55,13 +56,13 @@ using Eigen::VectorXd;
 //' uses default from OpenMP typically to use all available cores. 
 //' @param seed (random seed for Laplace approximation -- integer)
 //'  
-//' @details Notation: Let Z_j denote the J-th row of a matrix Z.
+//' @details Notation: Let \eqn{Z_j} denote the J-th row of a matrix Z.
 //' Model:
-//'    \deqn{Y_j \sim Multinomial(Pi_j)}
-//'    \deqn{Pi_j = Phi^{-1}(Eta_j)}
-//'    \deqn{Eta \sim T_{D-1, N}(upsilon, Theta*X, K, A)}
-//' Where A = I_N + X * Gamma * X', K is a (D-1)x(D-1) covariance 
-//' matrix, Gamma is a Q x Q covariance matrix, and Phi^{-1} is ALRInv_D 
+//'    \deqn{Y_j \sim Multinomial(\pi_j)}{Y_j \sim Multinomial(Pi_j)}
+//'    \deqn{\pi_j = \Phi^{-1}(\eta_j)}{Pi_j = Phi^(-1)(Eta_j)}
+//'    \deqn{\eta \sim T_{D-1, N}(\upsilon, \Theta X, K, A)}{Eta \sim T_{D-1, N}(upsilon, Theta*X, K, A)}
+//' Where \eqn{A = I_N + X  \Gamma X'}{A = I_N + X  Gamma  X'}, K is a (D-1)x(D-1) covariance 
+//' matrix, \eqn{\Gamma}{Gamma} is a Q x Q covariance matrix, and \eqn{\Phi^{-1}}{Phi^(-1)} is ALRInv_D 
 //' transform. 
 //' 
 //' Gradient and Hessian calculations are fast as they are computed using closed
@@ -89,10 +90,12 @@ using Eigen::VectorXd;
 //' 3. Hessian - (if \code{calcGradHess}=true) of the POSITIVE LOG POSTERIOR
 //' 4. Pars - Parameter value of eta at optima
 //' 5. Samples - (D-1) x N x n_samples array containing posterior samples of eta 
-//'   based on Laplace approximation (if n_samples>0)
+//'    based on Laplace approximation (if n_samples>0)
 //' 6. Timer - Vector of Execution Times
 //' 7. logInvNegHessDet - the log determinant of the covariacne of the Laplace 
 //'    approximation, useful for calculating marginal likelihood 
+//' 8. logMarginalLikelihood - A calculation of the log marginal likelihood based on
+//'    the laplace approximation
 //' @md 
 //' @export
 //' @name optimPibbleCollapsed
@@ -101,7 +104,7 @@ using Eigen::VectorXd;
 //' 
 //' JD Silverman K Roche, ZC Holmes, LA David, S Mukherjee. 
 //'   \emph{Bayesian Multinomial Logistic Normal Models through Marginally Latent Matrix-T Processes}. 
-//'   2019, arXiv e-prints, arXiv:1903.11695
+//'   2022, Journal of Machine Learning
 //' @seealso \code{\link{uncollapsePibble}}
 //' @examples
 //' sim <- pibble_sim()
@@ -128,7 +131,7 @@ List optimPibbleCollapsed(const Eigen::ArrayXXd Y,
                bool verbose=false,      
                int verbose_rate=10,
                String decomp_method="cholesky",
-               String optim_method="adam",
+               String optim_method="lbfgs",
                double eigvalthresh=0, 
                double jitter=0,
                double multDirichletBoot = -1.0, 
@@ -146,9 +149,10 @@ List optimPibbleCollapsed(const Eigen::ArrayXXd Y,
   PibbleCollapsed cm(Y, upsilon, ThetaX, KInv, AInv, useSylv);
   Map<VectorXd> eta(init.data(), init.size()); // will rewrite by optim
   double nllopt; // NEGATIVE LogLik at optim
-  List out(7);
+  List out(8);
   out.names() = CharacterVector::create("LogLik", "Gradient", "Hessian",
-            "Pars", "Samples", "Timer", "logInvNegHessDet");
+					"Pars", "Samples", "Timer", "logInvNegHessDet",
+					"logMarginalLikelihood");
   
   // Pick optimizer (ADAM - without perturbation appears to be best)
   //   ADAM with perturbations not fully implemented
@@ -194,6 +198,8 @@ List optimPibbleCollapsed(const Eigen::ArrayXXd Y,
       timer.step("Overall_stop");
       NumericVector t(timer);
       out[5] = t;
+      out[6] = R_NilValue;
+      out[7] = R_NilValue;
       return out;
     }
     // "Multinomial-Dirchlet" option 
@@ -226,7 +232,31 @@ List optimPibbleCollapsed(const Eigen::ArrayXXd Y,
         return out;
       }
       out[6] = logInvNegHessDet;
-      
+
+      // (log)marginallikelihood calculation
+      double normConstT; 
+      double normConstMult;
+      Eigen::LLT<MatrixXd> KInvSqrt; 
+      Eigen::LLT<MatrixXd> AInvSqrt; 
+      KInvSqrt.compute(KInv);
+      AInvSqrt.compute(AInv);
+      // // log |K|^(-(D-1)/2) MPN: Comments are wrong, code is correct.
+      normConstT = N*0.5*KInvSqrt.matrixLLT().diagonal().array().log().sum();
+      // // log |A|^(-N/2) MPN: Comments are wrong, code is correct.
+      normConstT = normConstT + (D-1)*0.5*AInvSqrt.matrixLLT().diagonal().array().log().sum();
+      // // TODO normConstT needs to account for the multivariate gamma terms...
+      ArrayXd numer = Y.colwise().sum();
+      numer += ArrayXd::Ones(N);
+      Eigen::ArrayXXd denom = Y;
+      denom += ArrayXXd::Ones(D, N);
+      for (int n=0; n<N; n++){
+	numer(n) = lmvgamma(numer(n), 1);
+	for (int d=0; d<D; d++){
+	  denom(d,n) = lmvgamma(denom(d,n), 1); 
+	}
+      }
+      normConstMult = numer.sum()-denom.sum(); 
+      out[7] = -nllopt + 0.5*logInvNegHessDet  + (D-1)*N/2*log(2*3.1415)  + normConstT + normConstMult - 0.5*log((D-1)*N);
       IntegerVector d = IntegerVector::create(D-1, N, n_samples);
       NumericVector samples = wrap(samp);
       samples.attr("dim") = d; // convert to 3d array for return to R

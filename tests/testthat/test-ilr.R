@@ -1,6 +1,6 @@
 test_that("ilr plus summary works", {
   library(dplyr)
-  
+  set.seed(123)
   Y = pibble_sim()
   priors <- pibble(NULL, Y$X, Y$upsilon, Y$Theta, Y$Gamma, Y$Xi)
   priors <- to_ilr(priors)
@@ -8,9 +8,8 @@ test_that("ilr plus summary works", {
 })
 
 test_that("clr plus summary works", {
-  library(phyloseq)
   library(dplyr)
-  
+  set.seed(123)
   Y = pibble_sim()
   priors <- pibble(NULL, Y$X, Y$upsilon, Y$Theta, Y$Gamma, Y$Xi)
   priors <- to_clr(priors)

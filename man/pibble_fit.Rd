@@ -15,6 +15,7 @@ pibble(
   Xi = NULL,
   init = NULL,
   pars = c("Eta", "Lambda", "Sigma"),
+  newdata = NULL,
   ...
 )
 
@@ -39,9 +40,11 @@ be present to sample Eta)}
 (default: ALR transform of diag(1)*(upsilon-D)/2 - this is
 essentially iid on "base scale" using Aitchison terminology)}
 
-\item{init}{(D-1) x Q initialization for Eta for optimization}
+\item{init}{(D-1) x N initialization for Eta for optimization}
 
 \item{pars}{character vector of posterior parameters to return}
+
+\item{newdata}{Default is \code{NULL}. If non-null, newdata is used in the uncollapse sampler in place of X.}
 
 \item{...}{arguments passed to \code{\link{optimPibbleCollapsed}} and
 \code{\link{uncollapsePibble}}}
@@ -64,12 +67,12 @@ the parameter \code{n_samples} in the function
 }
 \details{
 the full model is given by:
-\deqn{Y_j \sim Multinomial(Pi_j)}
-\deqn{Pi_j = Phi^{-1}(Eta_j)}
-\deqn{Eta \sim MN_{D-1 x N}(Lambda*X, Sigma, I_N)}
-\deqn{Lambda \sim MN_{D-1 x Q}(Theta, Sigma, Gamma)}
-\deqn{Sigma \sim InvWish(upsilon, Xi)}
-Where Gamma is a Q x Q covariance matrix, and Phi^{-1} is
+\deqn{Y_j \sim Multinomial(\pi_j)}{Y_j \sim Multinomial(Pi_j)}
+\deqn{\pi_j = \Phi^{-1}(\eta_j)}{Pi_j = Phi^(-1)(Eta_j)}
+\deqn{\eta \sim MN_{D-1 \times N}(\Lambda X, \Sigma, I_N)}{Eta \sim MN_{D-1 x N}(Lambda*X, Sigma, I_N)}
+\deqn{\Lambda \sim MN_{D-1 \times Q}(\Theta, \Sigma, \Gamma)}{Lambda \sim MN_{D-1 x Q}(Theta, Sigma, Gamma)}
+\deqn{\Sigma \sim InvWish(\upsilon, \Xi)}{Sigma \sim InvWish(upsilon, Xi)}
+Where \eqn{\Gamma}{Gamma} is a Q x Q covariance matrix, and \eqn{\Phi^{-1}}{Phi^(-1)} is
 ALRInv_D transform.
 
 Default behavior is to use MAP estimate for uncollaping the LTP

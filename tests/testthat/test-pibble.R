@@ -103,7 +103,7 @@ uncollapse <- function(eta, X, upsilon, Theta, Xi, Gamma){
     EN <- eta[,,i] - LambdaN %*% X
     Delta <- LambdaN - Theta
     XiN <- Xi + tcrossprod(EN) + Delta %*% solve(Gamma) %*% t(Delta)
-    Sigma[,,i] <- MCMCpack::riwish(upsilonN, XiN)#solve(rWishart(1, upsilonN, XiN)[,,1])
+    Sigma[,,i] <- solve(rWishart(1, upsilonN, solve(XiN))[,,1])
     Z <- matrix(rnorm((D-1)*Q), D-1, Q)
     Lambda[,,i] <- LambdaN + t(chol(Sigma[,,i]))%*%Z%*%chol(GammaN)
   }
@@ -143,6 +143,7 @@ test_that("uncollapse correctnesss against double programming", {
                                calcGradHess = FALSE)
   
   # Now check uncollapsing for Lambda
+  # ret_mean = TRUE
   fit2 <- uncollapsePibble(fit$Samples, sim$X, sim$Theta, sim$Gamma, 
                                      sim$Xi, sim$upsilon, ret_mean = TRUE, 2234)
   
@@ -151,6 +152,23 @@ test_that("uncollapse correctnesss against double programming", {
   
   expect_equal(fit2$Lambda, dpres$Lambda)
   expect_equal(fit2$Sigma, dpres$Sigma)
+  
+  # Now check when ret_mean == FALSE
+  fit3 <- uncollapsePibble(fit$Samples, sim$X, sim$Theta, sim$Gamma, 
+                           sim$Xi, sim$upsilon, 2234)
+  
+  uncol <- uncollapse(fit$Samples, sim$X, sim$upsilon, sim$Theta, sim$Xi, 
+                                sim$Gamma)
+  
+  Lambda_fit3 <- apply(fit3$Lambda, MARGIN = c(1,2), mean)
+  Lambda_uncol <- apply(uncol$Lambda, MARGIN = c(1,2), mean)
+  
+  expect_true(mean(abs(Lambda_fit3 - Lambda_uncol)) < 0.05)
+  
+  Sigma_fit3 <- apply(fit3$Sigma, MARGIN = c(1,2), mean)
+  Sigma_uncol <- apply(uncol$Sigma, MARGIN = c(1,2), mean)
+  
+  expect_true(mean(abs(Sigma_fit3 - Sigma_uncol)) < 0.05)
 })
 
 
@@ -198,5 +216,14 @@ test_that("init argument words in refit", {
   fit <- pibble(sim$Y, sim$X)
   fit <- refit(fit, init=random_pibble_init(sim$Y))
   expect(TRUE, "init argument not working in refit")
+})
+
+test_that("predict works with one sample", {
+  fit <- pibble(sim$Y, sim$X)
+  preds <- predict(fit, newdata = matrix(sim$X[,1], ncol = 1), response = "LambdaX")
+  preds <- predict(fit, newdata = matrix(sim$X[,1], ncol = 1), response = "Eta")
+  preds <- predict(fit, newdata = matrix(sim$X[,1], ncol = 1), response = "Y")
+
+  expect_true(TRUE)
 })
 
