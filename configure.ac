@@ -46,7 +46,9 @@ mkdir -p "${BUILDDIR}"
 owd=$(pwd)
 cd "${BUILDDIR}"
 
-# The configure script:
+# MPN: These updates were from a (very, very useful) help question posted to r-package-devel
+# Credit goes to Ivan Krylov.
+
 cat > test-omp.cpp <<EOF
 #include <omp.h>
 extern "C" void configtest(int * arg) {
@@ -59,7 +61,18 @@ cat > Makevars <<EOF
 PKG_CXXFLAGS = \$(SHLIB_OPENMP_CXXFLAGS)
 PKG_LIBS = \$(SHLIB_OPENMP_CXXFLAGS)
 EOF
-R CMD SHLIB test-omp.cpp
+
+# compile and link the shared object
+"${R_HOME}/bin/R" CMD SHLIB test-omp.cpp
+# load it and use a function from the inside
+"${R_HOME}/bin/Rscript" -e '
+ dyn.load(paste0("test-omp", .Platform$dynlib.ext))
+ .C("configtest", arg = integer(1))$arg
+'
+if test $? -eq 0; then
+ # everything seems to have succeeded
+ openmp_already_works="yes"
+fi
 
 ## Go back home.
 cd "${owd}"

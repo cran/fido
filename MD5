@@ -1,6 +1,6 @@
-47a6591c7c23371ebc824a6b88a2c62d *DESCRIPTION
+14e1137c186cb9809ab054d25a059edf *DESCRIPTION
 18c1097638d1e4435ed5b2e4dfab7e55 *NAMESPACE
-19e720df848f7ec6dedee0fcf6391f9e *NEWS.md
+5fd010fcbdfc05c061d7ad2e1a3ac257 *NEWS.md
 5f6f451a04b12f4fd089cf40c036c4df *R/R2.R
 46f6dfb9cbdf68364b3d074d301507c9 *R/RISK_CCFA.R
 0ac5e62220ddcfc01ada17e1e384a740 *R/RcppExports.R
@@ -29,8 +29,8 @@ b5d0a91cbaceb3a1929da00f5c2f63c5 *R/pcrbias_mock-data.R
 cd374668320a73da8d5a6bc4907f8b16 *R/pibble_sim.R
 2f06c7faf4195c57701d2f8c0d5f88c9 *build/vignette.rds
 8ac748a30136f36d43beef9edd433119 *cleanup
-9666f40cc15217fcfa471a2459d5a14f *configure
-3269ee83b59887eb3671a7541b03188b *configure.ac
+e8d0bc1ff0356410abf2856d340b19ee *configure
+cb1ff51bfa438fc09d67ccd1d5540e3e *configure.ac
 2b6e50026456aa47fe859fbd26d02c61 *data/RISK_CCFA.RData
 74a8a3f7dadc822adad9f392729e811e *data/mallard.RData
 40a4092ddaa82032449f198ea286c76b *data/mallard_family.RData
@@ -40,13 +40,13 @@ e6d44bef3138073c6bae5923652d37fc *inst/doc/introduction-to-fido.Rmd
 cad7c74085dd925109ef7879b52d4df9 *inst/doc/introduction-to-fido.html
 e1ffc12889d22eafa14ca2f8e33513d6 *inst/doc/mitigating-pcrbias.R
 109281a038b5eb1ab3a121f63da1d091 *inst/doc/mitigating-pcrbias.Rmd
-4b27b99bd2ebe47a13787de2ca7abec6 *inst/doc/mitigating-pcrbias.html
+175ea0200b0c6e40c54c8419450492cd *inst/doc/mitigating-pcrbias.html
 18acbfd5485fc88f2972aa18f25b6e55 *inst/doc/non-linear-models.R
 814888a59efdb1b583730617c813bba5 *inst/doc/non-linear-models.Rmd
-2ce2ed606d7a26973a5df3f1992ca6df *inst/doc/non-linear-models.html
+bdff8f26f046a8e7ecf42e243dc65735 *inst/doc/non-linear-models.html
 37ff95bc7a42328298e45c13f1720e21 *inst/doc/orthus.R
 fc3c1772f8c9e734828eb9ba9ed155cf *inst/doc/orthus.Rmd
-f9fdb8540d7304fd1fdf41468fd3ed94 *inst/doc/orthus.html
+2de867593e365997e8dc1fb8a100bdb5 *inst/doc/orthus.html
 9e461ea936981646c2eb1087cee8c8ff *inst/doc/picking_priors.R
 49926b1c364d2c4823f5401ebe83ef21 *inst/doc/picking_priors.Rmd
 db77159b1056ef436ad9bb1a57c8bce2 *inst/doc/picking_priors.html
@@ -159,7 +159,7 @@ ca9c5958afa577fd4f744a97f8df71b3 *src/RcppExports.cpp
 9b1d56827ab30b56d622fd81c88e6d73 *src/test_MultDirichletBoot.cpp
 ff0b1004878dc0ff72235a9306ebc62a *src/test_utils.cpp
 c09ff7c221aad59e5582aaa212dbd2ce *tests/testthat.R
-39e7993dc71db0746fe6fdeed912d8da *tests/testthat/Rplots.pdf
+a53201846c1a2657f78348a39c1e497d *tests/testthat/Rplots.pdf
 de2b2ca3a7479d047ad951a42a60cedc *tests/testthat/test-R2.R
 d8709df9e34a5c7cdd26f4f660fc6e77 *tests/testthat/test-baseFuns.R
 34047e2b2460f2f3446ec260ec4457db *tests/testthat/test-basset.R
