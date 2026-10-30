@@ -5,7 +5,9 @@
 #'
 #' @param Y D x N matrix of counts (if NULL uses priors only)
 #' @param X Q x N matrix of covariates (cannot be NULL)
-#' @param upsilon dof for inverse wishart prior (numeric must be > D) 
+#' @param upsilon degrees of freedom for the inverse-Wishart prior on Sigma
+#'   (numeric, must be > D-2; the prior mean of Sigma exists only if > D)
+#'   Values <= D require an explicit positive-definite Xi.
 #'   (default: D+3)
 #' @param Theta A function from dimensions dim(X) -> (D-1)xN (prior mean of gaussian process). For an additive GP model, can be a list of functions from dimensions dim(X) -> (D-1)xN + a (optional) matrix of size (D-1)xQ for the prior of a linear component if desired.
 #' @param Gamma A function from dimension dim(X) -> NxN (kernel matrix of gaussian process). For an additive GP model, can be a list of functions from dimension dim(X) -> NxN + a QxQ prior covariance matrix if a linear component is specified. It is assumed that the order matches the order of Theta.
@@ -13,14 +15,27 @@
 #'   (default: ALR transform of diag(1)*(upsilon-D)/2 - this is 
 #'   essentially iid on "base scale" using Aitchison terminology)
 #' @param linear A vector denoting which rows of X should be used if  a linear component is specified. Default is all rows.
-#' @param init (D-1) x Q initialization for Eta for optimization 
+#' @param init (D-1) x N initialization for Eta for optimization
 #' @param pars character vector of posterior parameters to return
 #' @param m object of class bassetfit 
 #' @param newdata Default is `NULL`. If non-null, newdata is used in the uncollapse sampler in place of X.
 #' @param ... other arguments passed to \link{pibble} (which is used internally to 
 #'  fit the basset model)
 #' 
-#' @details the full model is given by:
+#' @details \code{upsilon} is the usual inverse-Wishart degrees of freedom, so
+#' the prior mean of Sigma is \code{Xi/(upsilon-D)} (for \code{upsilon > D}).
+#' Larger values give a more concentrated prior on Sigma. Internally this is
+#' converted to the matrix-t degrees of freedom (\code{upsilon-D+2}) used by
+#' the collapsed model; you do not need to do this yourself. (If you call
+#' \code{\link{optimPibbleCollapsed}} directly, you do.)
+#'
+#' Versions of fido before 1.1.5 skipped this conversion when \code{D > 2}, so
+#' the prior used to estimate Eta did not match the prior requested. Fits made
+#' with earlier versions should be refit from the original data and priors.
+#' Log marginal likelihoods from earlier versions were also mis-normalized (for
+#' any \code{D}) and should not be compared with new values.
+#'
+#' The full model is given by:
 #'    \deqn{Y_j \sim Multinomial(\pi_j)}{Y_j \sim Multinomial(Pi_j)}  
 #'    \deqn{\pi_j = \Phi^{-1}(\eta_j)}{Pi_j = Phi^(-1)(Eta_j)}
 #'    \deqn{\eta \sim MN_{D-1 \times N}(\Lambda, \Sigma, I_N)}{Eta \sim MN_(D-1 x N)(Lambda, Sigma, I_N)}
@@ -74,7 +89,7 @@ basset <- function(Y=NULL, X, upsilon=NULL, Theta=NULL, Gamma=NULL, Xi=NULL, lin
   
   if(is.null(linear)){
     message("No rows of X were specified. Using all rows...")
-    linear <- 1:nrow(X)
+    linear <- seq_len(nrow(X))
   } else{
     ## Check that linear doesn't contain values less than 1 or greater than nrow(X)
     if(min(linear) < 1 | max(linear) > nrow(X)){
@@ -125,7 +140,7 @@ basset <- function(Y=NULL, X, upsilon=NULL, Theta=NULL, Gamma=NULL, Xi=NULL, lin
     }
     Theta_trans <- list()
     Gamma_trans <- list()
-    for(i in 1:length(Theta)){
+    for(i in seq_along(Theta)){
       Theta_trans[[i]] <- theta_eval(Theta[[i]], X, linear)
       Gamma_trans[[i]] <- gamma_eval(Gamma[[i]], X, linear)
     }
@@ -158,16 +173,16 @@ basset <- function(Y=NULL, X, upsilon=NULL, Theta=NULL, Gamma=NULL, Xi=NULL, lin
         } else{
           X.red <- X[linear,]
         }
-        fitu <- uncollapsePibble_sigmaKnown(coll_samples, X.red, Theta, Gamma, Gamma_comb, Xi, Sigma, upsilon, 
-                                            ret_mean, ncores, seed)
+        fitu <- uncollapsePibble_sigmaKnown(coll_samples, X.red, Theta, Gamma, Gamma_comb, Xi, Sigma, upsilon,
+                                            seed=seed, ret_mean=ret_mean, ncores=ncores)
         LambdaX <- array(NA, dim = c(nrow(fitu$Lambda), ncol(X), dim(fitu$Lambda)[3]))
         for(j in 1:dim(fitu$Lambda)[3]){
           LambdaX[,,j] <- fitu$Lambda[,,j] %*% X.red
         }
         return(list(Lambda = LambdaX, Lambda.out = fitu$Lambda))
       } else{
-        fitu <- uncollapsePibble_sigmaKnown(coll_samples, diag(ncol(X)), Theta(X), Gamma(X), Gamma_comb, Xi, Sigma, upsilon, 
-                                            ret_mean, ncores, seed)
+        fitu <- uncollapsePibble_sigmaKnown(coll_samples, diag(ncol(X)), Theta(X), Gamma(X), Gamma_comb, Xi, Sigma, upsilon,
+                                            seed=seed, ret_mean=ret_mean, ncores=ncores)
         return(list(Lambda = fitu$Lambda, Lambda.out = fitu$Lambda))
       }
     } 
@@ -199,8 +214,11 @@ basset <- function(Y=NULL, X, upsilon=NULL, Theta=NULL, Gamma=NULL, Xi=NULL, lin
             collapse_samps$Lambda - samp_mean
           }
           Gamma_comb_red <- Reduce('+', Gamma_trans[c((i+1):num.comp)])
+          # Each conditional draw needs fresh noise; reusing the same seed
+          # correlates innovations across components within a posterior draw.
+          component_seed <- seed + i - 1
           fitu <- add.uncollapse(unc_samples, newdata, Theta[[i]], Gamma[[i]], Gamma_comb_red, Xi, collapse_samps$Sigma,
-                                 upsilon, ret_mean, ncores, seed, linear)
+                                 upsilon, ret_mean, ncores, component_seed, linear)
           Lambda[[i]] <- fitu$Lambda
           Lambda.out[[i]] <- fitu$Lambda.out
         } else {

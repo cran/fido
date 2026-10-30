@@ -8,7 +8,7 @@ sim <- pibble_sim(true_priors=TRUE)
 test_that("optim and uncollapse correctnesss", {
  
   init <- random_pibble_init(sim$Y)
-  fit <- optimPibbleCollapsed(sim$Y, sim$upsilon, (sim$Theta%*%sim$X), sim$KInv, 
+  fit <- optimPibbleCollapsed(sim$Y, sim$upsilon - sim$D + 2, (sim$Theta%*%sim$X), sim$KInv,
                                sim$AInv, init,
                                n_samples=3000,
                                calcGradHess = FALSE, seed=40)
@@ -41,7 +41,7 @@ test_that("optim sylvester gets same result", {
   sim <- pibble_sim(D=30, N=10, true_priors = TRUE)
   init <- random_pibble_init(sim$Y)
   start <- Sys.time()
-  fit <- optimPibbleCollapsed(sim$Y, sim$upsilon, (sim$Theta%*%sim$X), sim$KInv, 
+  fit <- optimPibbleCollapsed(sim$Y, sim$upsilon - sim$D + 2, (sim$Theta%*%sim$X), sim$KInv,
                                sim$AInv, init,
                                n_samples=2000,
                                calcGradHess = FALSE, 
@@ -49,7 +49,7 @@ test_that("optim sylvester gets same result", {
   end <- Sys.time()
   plain <- end-start
   start <- Sys.time()
-  fitsylv <- optimPibbleCollapsed(sim$Y, sim$upsilon, (sim$Theta%*%sim$X), sim$KInv, 
+  fitsylv <- optimPibbleCollapsed(sim$Y, sim$upsilon - sim$D + 2, (sim$Theta%*%sim$X), sim$KInv,
                                sim$AInv, init,
                                n_samples=2000,
                                calcGradHess = FALSE, 
@@ -128,7 +128,7 @@ uncollapse_mean_only <- function(eta, X, upsilon, Theta, Xi, Gamma){
     Delta <- LambdaN - Theta
     EN <- eta[,,i] - LambdaN %*% X
     XiN <- Xi + tcrossprod(EN) + Delta %*% solve(Gamma) %*% t(Delta)
-    Sigma[,,i] <- XiN*(upsilonN-D)
+    Sigma[,,i] <- XiN/(upsilonN-D)
     Lambda[,,i] <- LambdaN 
   }
   return(list(Lambda=Lambda, Sigma=Sigma))
@@ -137,7 +137,7 @@ uncollapse_mean_only <- function(eta, X, upsilon, Theta, Xi, Gamma){
 
 test_that("uncollapse correctnesss against double programming", {
   init <- random_pibble_init(sim$Y)
-  fit <- optimPibbleCollapsed(sim$Y, sim$upsilon, (sim$Theta%*%sim$X), sim$KInv, 
+  fit <- optimPibbleCollapsed(sim$Y, sim$upsilon - sim$D + 2, (sim$Theta%*%sim$X), sim$KInv,
                                sim$AInv, init,
                                n_samples=2000,
                                calcGradHess = FALSE)
@@ -171,16 +171,27 @@ test_that("uncollapse correctnesss against double programming", {
   expect_true(mean(abs(Sigma_fit3 - Sigma_uncol)) < 0.05)
 })
 
+test_that("uncollapse is invariant to ncores for fixed seed", {
+  eta <- array(rep(sim$Eta, 5), dim = c(sim$D-1, sim$N, 5))
+  fit1 <- uncollapsePibble(eta, sim$X, sim$Theta, sim$Gamma,
+                           sim$Xi, sim$upsilon, seed = 91, ncores = 1)
+  fit2 <- uncollapsePibble(eta, sim$X, sim$Theta, sim$Gamma,
+                           sim$Xi, sim$upsilon, seed = 91, ncores = 2)
+
+  expect_equal(fit1$Lambda, fit2$Lambda)
+  expect_equal(fit1$Sigma, fit2$Sigma)
+})
+
 
 test_that("eigen and cholesky get same result", {
   sim <- pibble_sim(true_priors=TRUE, N=2, D=4)
   init <- random_pibble_init(sim$Y)
-  fitc <- optimPibbleCollapsed(sim$Y, sim$upsilon, (sim$Theta%*%sim$X), sim$KInv, 
+  fitc <- optimPibbleCollapsed(sim$Y, sim$upsilon - sim$D + 2, (sim$Theta%*%sim$X), sim$KInv,
                                sim$AInv, init,
                                n_samples=500000,
                                calcGradHess = FALSE, 
                                decomp="cholesky")
-  fite <- optimPibbleCollapsed(sim$Y, sim$upsilon, (sim$Theta%*%sim$X), sim$KInv, 
+  fite <- optimPibbleCollapsed(sim$Y, sim$upsilon - sim$D + 2, (sim$Theta%*%sim$X), sim$KInv,
                                 sim$AInv, init,
                                 n_samples=500000,
                                 calcGradHess = FALSE, 
@@ -199,7 +210,7 @@ test_that("eigen and cholesky get same result", {
 
 test_that("logInvNegHessDet correct", {
   init <- random_pibble_init(sim$Y)
-  fitc <- optimPibbleCollapsed(sim$Y, sim$upsilon, (sim$Theta%*%sim$X), sim$KInv, 
+  fitc <- optimPibbleCollapsed(sim$Y, sim$upsilon - sim$D + 2, (sim$Theta%*%sim$X), sim$KInv,
                                 sim$AInv, init,
                                 n_samples=1,
                                 calcGradHess = TRUE, 
@@ -208,8 +219,18 @@ test_that("logInvNegHessDet correct", {
 })
 
 
-test_that("max_iter leads to warning not error", {
-  expect_warning(pibble(sim$Y, sim$X, max_iter=3))
+test_that("ADAM iteration limit warns without a Hessian or sampling", {
+  counts <- matrix(c(10, 2, 3, 2, 15, 4, 8, 2, 7, 3, 4, 12), nrow = 3)
+  design <- matrix(1, nrow = 1, ncol = 4)
+  initial <- matrix(0, nrow = 2, ncol = 4)
+  expect_warning(
+    fit <- pibble(counts, design, init = initial, optim_method = "adam",
+                  max_iter = 1, eps_f = 0, eps_g = 0,
+                  n_samples = 0, calcGradHess = FALSE),
+    "[Mm]ax [Ii]terations [Hh]it"
+  )
+  expect_s3_class(fit, "pibblefit")
+  expect_true(all(is.finite(fit$Eta)))
 })
 
 test_that("init argument words in refit", {
@@ -226,4 +247,3 @@ test_that("predict works with one sample", {
 
   expect_true(TRUE)
 })
-

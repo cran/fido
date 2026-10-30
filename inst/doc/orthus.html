@@ -150,7 +150,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; }
 div.csl-bib-body { }
 div.csl-entry {
 clear: both;
-margin-bottom: 0em;
 }
 .hanging div.csl-entry {
 margin-left:2em;
@@ -426,13 +425,14 @@ accommodate the second dataset.</p>
 <div id="joint-modeling-of-microbial-16s-data-and-metabolomics" class="section level1">
 <h1>Joint modeling of Microbial 16S data and Metabolomics</h1>
 <p>To demonstrate <em>orthus</em> I will perform a toy analysis on data
-from <span class="citation">Kashyap et al. (2013)</span> and made
-available by <span class="citation">Callahan et al. (2016)</span> as
-part of their recently published microbiome data analysis workflow <span class="citation">(Callahan et al. 2016)</span>. I follow the data
-preprocessing of <span class="citation">Callahan et al. (2016)</span> we
-just don’t drop taxa but instead amalgamate those that don’t pass
-filtering to a category called “other”. I do this to maintain the proper
-variance in the multinomial model.</p>
+from <span class="citation"><span class="nocase">Kashyap et al.</span>
+(2013)</span> and made available by <span class="citation">Callahan et
+al. (2016)</span> as part of their recently published microbiome data
+analysis workflow <span class="citation">(Callahan et al. 2016)</span>.
+I follow the data preprocessing of <span class="citation">Callahan et
+al. (2016)</span> we just don’t drop taxa but instead amalgamate those
+that don’t pass filtering to a category called “other”. I do this to
+maintain the proper variance in the multinomial model.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>metab_path <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">&quot;extdata/Kashyap2013&quot;</span>, <span class="st">&quot;metabolites.csv&quot;</span>, <span class="at">package=</span><span class="st">&quot;fido&quot;</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>microbe_path <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">&quot;extdata/Kashyap2013&quot;</span>, <span class="st">&quot;microbe.rda&quot;</span>, <span class="at">package=</span><span class="st">&quot;fido&quot;</span>)</span>
 <span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>metab <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(metab_path, <span class="at">row.names =</span> <span class="dv">1</span>)</span>
@@ -484,13 +484,13 @@ as <span class="math inline">\(GG\)</span> below). Additionally, I
 believe that there is likely no substantial covariance between the taxa
 and the metabolites and I assume the metabolites are likely
 independent.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>upsilon <span class="ot">&lt;-</span> (D<span class="dv">-1</span><span class="sc">+</span>P)<span class="sc">+</span><span class="dv">10</span> <span class="co"># weak-ish prior on covariance over joint taxa and metabolites</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>Xi <span class="ot">&lt;-</span> <span class="fu">diag</span>(D<span class="dv">-1</span><span class="sc">+</span>P)</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>GG <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="fu">diag</span>(D<span class="dv">-1</span>), <span class="sc">-</span><span class="dv">1</span>)</span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>Xi[<span class="dv">1</span><span class="sc">:</span>(D<span class="dv">-1</span>), <span class="dv">1</span><span class="sc">:</span>(D<span class="dv">-1</span>)] <span class="ot">&lt;-</span> GG<span class="sc">%*%</span><span class="fu">diag</span>(D) <span class="sc">%*%</span> <span class="fu">t</span>(GG)</span>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>upsilon <span class="ot">&lt;-</span> (D<span class="sc">-</span><span class="dv">1</span><span class="sc">+</span>P)<span class="sc">+</span><span class="dv">10</span> <span class="co"># weak-ish prior on covariance over joint taxa and metabolites</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>Xi <span class="ot">&lt;-</span> <span class="fu">diag</span>(D<span class="sc">-</span><span class="dv">1</span><span class="sc">+</span>P)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>GG <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="fu">diag</span>(D<span class="sc">-</span><span class="dv">1</span>), <span class="sc">-</span><span class="dv">1</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>Xi[<span class="dv">1</span><span class="sc">:</span>(D<span class="sc">-</span><span class="dv">1</span>), <span class="dv">1</span><span class="sc">:</span>(D<span class="sc">-</span><span class="dv">1</span>)] <span class="ot">&lt;-</span> GG<span class="sc">%*%</span><span class="fu">diag</span>(D) <span class="sc">%*%</span> <span class="fu">t</span>(GG)</span>
 <span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>Xi <span class="ot">&lt;-</span> Xi <span class="sc">*</span> (upsilon<span class="sc">-</span>D<span class="sc">-</span>P) <span class="co"># this scales Xi to have the proper mean we wanted</span></span>
 <span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="fu">image</span>(Xi)</span></code></pre></div>
-<p><img src="data:image/png;base64,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" width="50%" style="display: block; margin: auto;" /></p>
+<p><img role="img" aria-label src="data:image/png;base64,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" alt width="50%" style="display: block; margin: auto;" /></p>
 <p>Note the structure of this prior, everything is independent but there
 is a moderate positive covariance between the log-ratios based on their
 shared definition in terms of the <span class="math inline">\(D\)</span>-th taxa.</p>
@@ -500,7 +500,7 @@ centered about <span class="math inline">\(\mathbf{0}\)</span> and that
 the signal-to-noise ratio in the data is approximately 1 (this later
 part is specified by <span class="math inline">\(\Gamma=I\)</span>).</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>Gamma <span class="ot">&lt;-</span> <span class="fu">diag</span>(Q)</span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>Theta <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, D<span class="dv">-1</span><span class="sc">+</span>P, Q)</span></code></pre></div>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>Theta <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, D<span class="sc">-</span><span class="dv">1</span><span class="sc">+</span>P, Q)</span></code></pre></div>
 <p>Finally I fit the model.</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">orthus</span>(Y, Z, X, <span class="at">Theta=</span>Theta, <span class="at">Gamma=</span>Gamma, <span class="at">Xi=</span>Xi, <span class="at">upsilon=</span>upsilon, <span class="at">n_samples=</span><span class="dv">1000</span>)</span></code></pre></div>
 <p>Next we are going to transform the log-ratios from <span class="math inline">\(ALR_D\)</span> to the <span class="math inline">\(CLR\)</span>. I have written all the
@@ -535,7 +535,7 @@ confident about.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># First just look ath the cross-covariances fit by the model</span></span>
 <span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co"># (covariance between taxa in CLR coordinates and metabolites)</span></span>
 <span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co"># This requires that we extract the corner of Sigma. </span></span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>xcor <span class="ot">&lt;-</span> fit<span class="sc">$</span>Sigma[<span class="dv">1</span><span class="sc">:</span>D, D<span class="sc">:</span>(D<span class="dv">-1</span><span class="sc">+</span>P),]</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>xcor <span class="ot">&lt;-</span> fit<span class="sc">$</span>Sigma[<span class="dv">1</span><span class="sc">:</span>D, D<span class="sc">:</span>(D<span class="sc">-</span><span class="dv">1</span><span class="sc">+</span>P),]</span>
 <span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a></span>
 <span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co"># Initial preprocessing to speed up computation of posterior intervals</span></span>
 <span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co"># As there are a lot of cross-covariance terms we are going to first </span></span>
@@ -561,7 +561,7 @@ confident about.</p>
 <span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a><span class="co"># Select those covariances where the model has high certainty (95%) that</span></span>
 <span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a><span class="co"># the true covariance is not zero. </span></span>
 <span id="cb8-29"><a href="#cb8-29" tabindex="-1"></a>xcor.summary <span class="sc">%&gt;%</span> </span>
-<span id="cb8-30"><a href="#cb8-30" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">sign</span>(p2<span class="fl">.5</span>)<span class="sc">==</span><span class="fu">sign</span>(p97<span class="fl">.5</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-30"><a href="#cb8-30" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">sign</span>(p2.5)<span class="sc">==</span><span class="fu">sign</span>(p97.5)) <span class="sc">%&gt;%</span> </span>
 <span id="cb8-31"><a href="#cb8-31" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">abs</span>(mean) <span class="sc">&gt;</span> <span class="dv">2</span>)</span>
 <span id="cb8-32"><a href="#cb8-32" tabindex="-1"></a><span class="co">#&gt; # A tibble: 218 x 8</span></span>
 <span id="cb8-33"><a href="#cb8-33" tabindex="-1"></a><span class="co">#&gt; # Groups:   taxa [17]</span></span>
@@ -610,7 +610,7 @@ Vignette. I hope you enjoy <em>orthus</em>.</p>
 </div>
 <div id="references" class="section level1 unnumbered">
 <h1 class="unnumbered">References</h1>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-callahan2016" class="csl-entry">
 Callahan, Ben J, Kris Sankaran, Julia A Fukuyama, Paul J McMurdie, and
 Susan P Holmes. 2016. <span>“Bioconductor Workflow for Microbiome Data
@@ -618,12 +618,11 @@ Analysis: From Raw Reads to Community Analyses.”</span>
 <em>F1000Research</em> 5.
 </div>
 <div id="ref-kashyap2013" class="csl-entry">
-Kashyap, Purna C, Angela Marcobal, Luke K Ursell, Samuel A Smits, Erica
-D Sonnenburg, Elizabeth K Costello, Steven K Higginbottom, et al. 2013.
-<span>“Genetically Dictated Change in Host Mucus Carbohydrate Landscape
-Exerts a Diet-Dependent Effect on the Gut Microbiota.”</span>
-<em>Proceedings of the National Academy of Sciences</em> 110 (42):
-17059–64.
+<span class="nocase">Kashyap, Purna C, Angela Marcobal, Luke K Ursell,
+et al.</span> 2013. <span>“Genetically Dictated Change in Host Mucus
+Carbohydrate Landscape Exerts a Diet-Dependent Effect on the Gut
+Microbiota.”</span> <em>Proceedings of the National Academy of
+Sciences</em> 110 (42): 17059–64.
 </div>
 </div>
 </div>

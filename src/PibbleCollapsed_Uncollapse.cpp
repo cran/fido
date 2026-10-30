@@ -1,4 +1,5 @@
 #include <fido.h>
+#include <MklThreads.h>
 #include <Rcpp/Benchmark/Timer.h>
 #include <boost/random/mersenne_twister.hpp>
 
@@ -30,11 +31,12 @@ using Eigen::Lower;
 //' @param Theta matrix of prior mean of dimension (D-1) x Q
 //' @param Gamma covariance matrix of dimension Q x Q
 //' @param Xi covariance matrix of dimension (D-1) x (D-1)
-//' @param upsilon scalar (must be > D) degrees of freedom for InvWishart prior
+//' @param upsilon scalar (must be > D-2) degrees of freedom for InvWishart prior
 //' @param ret_mean if true then uses posterior mean of Lambda and Sigma 
 //'   corresponding to each sample of eta rather than sampling from 
 //'   posterior of Lambda and Sigma (useful if Laplace approximation
-//'   is not used (or fails) in optimPibbleCollapsed)
+//'   is not used (or fails) in optimPibbleCollapsed). Requires
+//'   \code{upsilon + N > D} so the conditional posterior mean of Sigma exists.
 //' @param seed seed to use for random number generation 
 //' @param ncores (default:-1) number of cores to use, if ncores==-1 then 
 //' uses default from OpenMP typically to use all available cores. 
@@ -43,7 +45,7 @@ using Eigen::Lower;
 //' While the collapsed model is given by:
 //'    \deqn{Y_j \sim \text{Multinomial}(\pi_j)}{Y_j \sim Multinomial(Pi_j)}
 //'    \deqn{\pi_j = \Phi^{-1}(\eta_j)}{Pi_j = Phi^{-1}(Eta_j)}
-//'    \deqn{\eta \sim T_{D-1, N}(\upsilon, \Theta X, K, A)}{Eta \sim T_{D-1, N}(upsilon, Theta*X, K, A)}
+//'    \deqn{\eta \sim T_{D-1, N}(\upsilon-D+2, \Theta X, K, A)}{Eta \sim T_{D-1, N}(upsilon-D+2, Theta*X, K, A)}
 //' Where \eqn{A = I_N + X \Gamma X'}{A = I_N + X * Gamma * X'}, \eqn{K=\Xi}{K = Xi} is a (D-1)x(D-1) covariance 
 //' matrix, \eqn{\Gamma}{Gamma} is a Q x Q covariance matrix, and \eqn{\Phi^{-1}}{Phi^(-1)} is ALRInv_D 
 //' transform. 
@@ -72,7 +74,7 @@ using Eigen::Lower;
 //' sim <- pibble_sim()
 //' 
 //' # Fit model for eta
-//' fit <- optimPibbleCollapsed(sim$Y, sim$upsilon, sim$Theta%*%sim$X, sim$KInv, 
+//' fit <- optimPibbleCollapsed(sim$Y, sim$upsilon - sim$D + 2, sim$Theta%*%sim$X, sim$KInv,
 //'                              sim$AInv, random_pibble_init(sim$Y))  
 //' 
 //' # Finally obtain samples from Lambda and Sigma
@@ -107,6 +109,9 @@ List uncollapsePibble(const Eigen::Map<Eigen::VectorXd> eta, // note this is ess
   int N = X.cols();
   int iter = eta.size()/(N*(D-1)); // assumes result is an integer !!!
   double upsilonN = upsilon + N;
+  if (ret_mean && upsilonN <= D) {
+    Rcpp::stop("The conditional posterior mean of Sigma requires upsilon + N > D; use ret_mean = FALSE to sample instead");
+  }
   const MatrixXd GammaInv(Gamma.lu().inverse());
   const MatrixXd GammaInvN(GammaInv + X*X.transpose());
   const MatrixXd GammaN(GammaInvN.lu().inverse());
@@ -126,10 +131,7 @@ List uncollapsePibble(const Eigen::Map<Eigen::VectorXd> eta, // note this is ess
   #endif 
   #pragma omp parallel shared(D, N, Q, LambdaDraw0, SigmaDraw0)
   {
-    boost::random::mt19937 rng(seed);
-  #ifdef FIDO_USE_PARALLEL
-    rng.discard(omp_get_thread_num()*iter);
-  #endif 
+  fido_threads::MklThreadLimit mkl_thread_limit;
   // storage for computation
   MatrixXd LambdaN(D-1, Q);
   MatrixXd XiN(D-1, D-1);
@@ -139,6 +141,7 @@ List uncollapsePibble(const Eigen::Map<Eigen::VectorXd> eta, // note this is ess
   #pragma omp for 
   for (int i=0; i < iter; i++){
     //R_CheckUserInterrupt();
+    boost::random::mt19937 rng(fido_rng::mix_seed(seed, i));
     const Map<const MatrixXd> Eta(&eta(i*N*(D-1)),D-1, N);
     LambdaN.noalias() = Eta*XTGammaN+ThetaGammaInvGammaN;
     ELambda = LambdaN-Theta;
@@ -149,7 +152,7 @@ List uncollapsePibble(const Eigen::Map<Eigen::VectorXd> eta, // note this is ess
       Map<VectorXd> LambdaNVec(LambdaN.data(), LambdaN.size());
       Map<VectorXd> XiNVec(XiN.data(), XiN.size());
       LambdaDraw0.col(i) = LambdaNVec;
-      SigmaDraw0.col(i) = (upsilonN-D)*XiNVec; // mean of inverse wishart
+      SigmaDraw0.col(i) = XiNVec/(upsilonN-D); // mean of inverse wishart
     } else {
       // Draw Random Component
       rInvWishRevCholesky_thread_inplace(LSigmaDraw, upsilonN, XiN, rng);
@@ -204,7 +207,7 @@ Eigen::MatrixXd rMatNormalCholesky_test(Eigen::MatrixXd M,
 }
 
 // [[Rcpp::export]]
-Eigen::MatrixXd rInvWishRevCholesky_test(int v, Eigen::MatrixXd Psi){
+Eigen::MatrixXd rInvWishRevCholesky_test(double v, Eigen::MatrixXd Psi){
   return rInvWishRevCholesky(v, Psi);
 }
 

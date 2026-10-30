@@ -238,12 +238,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // rInvWishRevCholesky_test
-Eigen::MatrixXd rInvWishRevCholesky_test(int v, Eigen::MatrixXd Psi);
+Eigen::MatrixXd rInvWishRevCholesky_test(double v, Eigen::MatrixXd Psi);
 RcppExport SEXP _fido_rInvWishRevCholesky_test(SEXP vSEXP, SEXP PsiSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type v(vSEXP);
+    Rcpp::traits::input_parameter< double >::type v(vSEXP);
     Rcpp::traits::input_parameter< Eigen::MatrixXd >::type Psi(PsiSEXP);
     rcpp_result_gen = Rcpp::wrap(rInvWishRevCholesky_test(v, Psi));
     return rcpp_result_gen;
@@ -344,6 +344,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// fido_build_info_cpp
+Rcpp::List fido_build_info_cpp();
+RcppExport SEXP _fido_fido_build_info_cpp() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    rcpp_result_gen = Rcpp::wrap(fido_build_info_cpp());
+    return rcpp_result_gen;
+END_RCPP
+}
 // eigen_lap_test
 Eigen::MatrixXd eigen_lap_test(int n_samples, Eigen::VectorXd m, Eigen::MatrixXd S, double eigvalthresh);
 RcppExport SEXP _fido_eigen_lap_test(SEXP n_samplesSEXP, SEXP mSEXP, SEXP SSEXP, SEXP eigvalthreshSEXP) {
@@ -373,8 +382,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // LaplaceApproximation_test
-Eigen::MatrixXd LaplaceApproximation_test(int n_samples, Eigen::VectorXd m, Eigen::MatrixXd S, String decomp_method, double eigvalthresh);
-RcppExport SEXP _fido_LaplaceApproximation_test(SEXP n_samplesSEXP, SEXP mSEXP, SEXP SSEXP, SEXP decomp_methodSEXP, SEXP eigvalthreshSEXP) {
+Eigen::MatrixXd LaplaceApproximation_test(int n_samples, Eigen::VectorXd m, Eigen::MatrixXd S, String decomp_method, double eigvalthresh, int seed);
+RcppExport SEXP _fido_LaplaceApproximation_test(SEXP n_samplesSEXP, SEXP mSEXP, SEXP SSEXP, SEXP decomp_methodSEXP, SEXP eigvalthreshSEXP, SEXP seedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -383,7 +392,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Eigen::MatrixXd >::type S(SSEXP);
     Rcpp::traits::input_parameter< String >::type decomp_method(decomp_methodSEXP);
     Rcpp::traits::input_parameter< double >::type eigvalthresh(eigvalthreshSEXP);
-    rcpp_result_gen = Rcpp::wrap(LaplaceApproximation_test(n_samples, m, S, decomp_method, eigvalthresh));
+    Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
+    rcpp_result_gen = Rcpp::wrap(LaplaceApproximation_test(n_samples, m, S, decomp_method, eigvalthresh, seed));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -466,9 +476,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_fido_uncollapsePibble_sigmaKnown", (DL_FUNC) &_fido_uncollapsePibble_sigmaKnown, 12},
     {"_fido_lmvgamma", (DL_FUNC) &_fido_lmvgamma, 2},
     {"_fido_lmvgamma_deriv", (DL_FUNC) &_fido_lmvgamma_deriv, 2},
+    {"_fido_fido_build_info_cpp", (DL_FUNC) &_fido_fido_build_info_cpp, 0},
     {"_fido_eigen_lap_test", (DL_FUNC) &_fido_eigen_lap_test, 4},
     {"_fido_cholesky_lap_test", (DL_FUNC) &_fido_cholesky_lap_test, 4},
-    {"_fido_LaplaceApproximation_test", (DL_FUNC) &_fido_LaplaceApproximation_test, 5},
+    {"_fido_LaplaceApproximation_test", (DL_FUNC) &_fido_LaplaceApproximation_test, 6},
     {"_fido_alrInv_default_test", (DL_FUNC) &_fido_alrInv_default_test, 1},
     {"_fido_alr_default_test", (DL_FUNC) &_fido_alr_default_test, 1},
     {"_fido_rDirichlet_test", (DL_FUNC) &_fido_rDirichlet_test, 2},
@@ -477,7 +488,9 @@ static const R_CallMethodDef CallEntries[] = {
     {NULL, NULL, 0}
 };
 
+void fido_init_threads(DllInfo* dll);
 RcppExport void R_init_fido(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
+    fido_init_threads(dll);
 }

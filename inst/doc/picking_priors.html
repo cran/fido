@@ -477,16 +477,14 @@ to understand.</p>
 <div id="background-on-the-prior" class="section level2">
 <h2>Background on the Prior</h2>
 <p>The prior for <span class="math inline">\(\Sigma\)</span> is an <a href="https://en.wikipedia.org/wiki/Inverse-Wishart_distribution">Inverse
-Wishart</a> written <span class="math display">\[\Sigma \sim W^{-1}(\Xi,
-\upsilon)\]</span> where <span class="math inline">\(\Xi\)</span> is
-called the scale matrix (and must be a valid covariance matrix itself),
-and <span class="math inline">\(\upsilon\)</span> is called the degrees
-of freedom parameter. If <span class="math inline">\(\Sigma\)</span> is
-a <span class="math inline">\((D-1)x(D-1)\)</span> matrix, then there is
-a constraint on <span class="math inline">\(\upsilon\)</span> such that
-<span class="math inline">\(\upsilon \geq D-1\)</span>.</p>
+Wishart</a> written <span class="math display">\[\Sigma \sim
+W^{-1}(\upsilon, \Xi)\]</span> where <span class="math inline">\(\Xi\)</span> is called the scale matrix (and must
+be a valid covariance matrix itself), and <span class="math inline">\(\upsilon\)</span> is called the degrees of freedom
+parameter. If <span class="math inline">\(\Sigma\)</span> is a <span class="math inline">\((D-1)\times(D-1)\)</span> matrix, then there is a
+constraint on <span class="math inline">\(\upsilon\)</span> such that
+<span class="math inline">\(\upsilon &gt; D-2\)</span>.</p>
 <p>The inverse Wishart has a mildly complex form for its moments (e.g.,
-mean and variance). Its mean is given by <span class="math display">\[E[\Sigma] = \frac{\Xi}{\upsilon-D-2} \quad
+mean and variance). Its mean is given by <span class="math display">\[E[\Sigma] = \frac{\Xi}{\upsilon-D} \quad
 \text{for } \upsilon &gt; D.\]</span> Its variance is somewhat
 complicated (<a href="https://en.wikipedia.org/wiki/Inverse-Wishart_distribution#Moments">Wikipedia
 gives the relationships</a>) but for most purposes you can think of
@@ -523,8 +521,9 @@ post</em> multiplying by the transformation matrix <span class="math inline">\(\
 turns out that if we have <span class="math inline">\(\Omega \sim
 W^{-1}(\gamma, S)\)</span> for a <span class="math inline">\(D\times
 D\)</span> covariance matrix <span class="math inline">\(\Omega\)</span>
-then for <span class="math inline">\(M\times D\)</span> matrix <span class="math inline">\(\Psi\)</span> we have <span class="math inline">\(\Psi \Omega \Psi^T \sim W^{-1}(\upsilon, \Psi S
-\Psi^T)\)</span>.</p>
+then for a full-row-rank <span class="math inline">\(M\times D\)</span>
+matrix <span class="math inline">\(\Psi\)</span> we have <span class="math inline">\(\Psi \Omega \Psi^T \sim W^{-1}(\upsilon, \Psi S
+\Psi^T)\)</span> with <span class="math inline">\(\upsilon=\gamma-D+M\)</span>.</p>
 <p><strong>Putting It All Together</strong> A central question: what is
 a reasonable prior for log-ratios? We are not used to working with
 log-ratios so this is difficult. A potentially simpler problem is to
@@ -538,16 +537,18 @@ with variance 1. I want to come up with values <span class="math inline">\(\gamm
 specifying the mean for <span class="math inline">\(\Omega\)</span>.
 <span class="math display">\[E[\Omega] =I_D.\]</span> Next we say we
 have little certainty about this mean (want high variance) so we set
-<span class="math inline">\(\gamma\)</span> to be close to the lower
-bound of <span class="math inline">\(D\)</span> (I often like <span class="math inline">\(\gamma=D+3\)</span>). Now we have <span class="math inline">\(\gamma\)</span> we need to calculate <span class="math inline">\(S\)</span> which we do by solving for <span class="math inline">\(S\)</span> in the equation for the Inverse-Wishart
+<span class="math inline">\(\gamma\)</span> to be close to its lower
+bound (the mean only exists for <span class="math inline">\(\gamma &gt;
+D+1\)</span>; I often like <span class="math inline">\(\gamma=D+3\)</span>). Now we have <span class="math inline">\(\gamma\)</span> we need to calculate <span class="math inline">\(S\)</span> which we do by solving for <span class="math inline">\(S\)</span> in the equation for the Inverse-Wishart
 mean<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>:
 <span class="math display">\[S = E[\Omega](\gamma -D-1).\]</span> There
 you go that’s a prior on the log-absolute-abundances. Next we need to
 transform this into a prior on log-ratios. Well the above allows us to
 do this by simplifying taking the contrast matrix <span class="math inline">\(\Psi\)</span> from the log-ratio transform we want
-and transforming our prior for <span class="math inline">\(\Omega\)</span> as <span class="math inline">\(\Sigma \sim W^{-1}(\gamma, \Psi S
-\Psi^T)\)</span>. That’s it there the prior on log-ratios built form a
-prior on log-absolute-abundances.</p>
+and transforming our prior for <span class="math inline">\(\Omega\)</span> as <span class="math inline">\(\Sigma \sim W^{-1}(\gamma-1, \Psi S
+\Psi^T)\)</span> (the degrees of freedom drop by one because we go from
+<span class="math inline">\(D\)</span> to <span class="math inline">\(D-1\)</span> dimensions). That’s it there the
+prior on log-ratios built form a prior on log-absolute-abundances.</p>
 <p><em>A Note on Phylogenetic priors:</em> As in phylogenetic linear
 models, you can make <span class="math inline">\(S\)</span> (as defined
 above) a covariance derived from the phylogenetic differences between
@@ -556,8 +557,11 @@ taxa. This allows you to fit phylogenetic linear models in
 <p><strong>Making It Even Simpler</strong> Say that you have a prior
 <span class="math inline">\(\Omega \sim W^{-1}(\gamma, S)\)</span> for
 covariance between log-absolute-abundances (created as in our example
-above). You want to transform this into a prior <span class="math inline">\(\Sigma \sim W^{-1}(\upsilon, \Xi)\)</span>. You do
-this by simply taking <span class="math inline">\(\upsilon=\gamma\)</span>. To calculate <span class="math inline">\(\Xi\)</span>, rather than worrying about <span class="math inline">\(\Psi\)</span>, functions in the <a href="https://jsilve24.github.io/driver/"><em>driver</em> package I
+above). You want to transform this into a prior <span class="math inline">\(\Sigma \sim W^{-1}(\upsilon, \Xi)\)</span>. The
+projected standard inverse-Wishart df is <span class="math inline">\(\upsilon=\gamma-D+M\)</span> (so <span class="math inline">\(\upsilon=\gamma-1\)</span> for an ALR or ILR
+contrast with <span class="math inline">\(M=D-1\)</span>). To calculate
+<span class="math inline">\(\Xi\)</span>, rather than worrying about
+<span class="math inline">\(\Psi\)</span>, functions in the <a href="https://jsilve24.github.io/driver/"><em>driver</em> package I
 wrote</a> will do this for you, here are recipes:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># To put prior on ALR_j coordinates for some j in (1,...,D-1)</span></span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>Xi <span class="ot">&lt;-</span> <span class="fu">clrvar2alrvar</span>(S, j)</span>

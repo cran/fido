@@ -15,7 +15,11 @@ hessPibbleCollapsed(Y, upsilon, ThetaX, KInv, AInv, eta, sylv = FALSE)
 \arguments{
 \item{Y}{D x N matrix of counts}
 
-\item{upsilon}{(must be > D)}
+\item{upsilon}{matrix-t degrees of freedom (must be > 0). This is
+\emph{not} the same scale as the \code{upsilon} argument of
+\code{\link{pibble}} or \code{\link{uncollapsePibble}}: for an
+inverse-Wishart prior with degrees of freedom \code{upsilon}, pass
+\code{upsilon - D + 2} here.}
 
 \item{ThetaX}{D-1 x N matrix formed by Theta*X (Theta is Prior mean
 for regression coefficients)}
@@ -46,7 +50,8 @@ C++ class due to a lack of Memoization. By contrast function optimPibbleCollapse
 is much more optimized and massively cuts down on repeated calculations.
 A more efficient Rcpp module based implementation of these functions
 may following if the future. For model details see \code{\link{optimPibbleCollapsed}}
-documentation
+documentation. The log likelihood omits terms constant in eta (including
+the matrix-t and multinomial normalizers); it is not a normalized density.
 }
 \examples{
 D <- 10
@@ -76,7 +81,7 @@ AInv <- solve(diag(N)+ t(X)\%*\%Gamma\%*\%X)
 ThetaX <- Theta\%*\%X
 
 
-loglikPibbleCollapsed(Y, upsilon, ThetaX, KInv, AInv, Eta)
-gradPibbleCollapsed(Y, upsilon, ThetaX, KInv, AInv, Eta)[1:5]
-hessPibbleCollapsed(Y, upsilon, ThetaX, KInv, AInv, Eta)[1:5,1:5]
+loglikPibbleCollapsed(Y, upsilon - D + 2, ThetaX, KInv, AInv, Eta)
+gradPibbleCollapsed(Y, upsilon - D + 2, ThetaX, KInv, AInv, Eta)[1:5]
+hessPibbleCollapsed(Y, upsilon - D + 2, ThetaX, KInv, AInv, Eta)[1:5,1:5]
 }

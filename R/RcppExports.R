@@ -80,7 +80,11 @@ hessMaltipooCollapsed <- function(Y, upsilon, Theta, X, KInv, U, eta, ell, sylv 
 #' of covariates. 
 #' 
 #' @param Y D x N matrix of counts
-#' @param upsilon (must be > D)
+#' @param upsilon matrix-t degrees of freedom (must be > 0). This is
+#' \emph{not} the same scale as the \code{upsilon} argument of
+#' \code{\link{pibble}} or \code{\link{uncollapsePibble}}: for an
+#' inverse-Wishart prior with degrees of freedom \code{upsilon}, pass
+#' \code{upsilon - D + 2} here.
 #' @param Theta D-1 x Q matrix the prior mean for regression coefficients
 #' @param X Q x N matrix of covariates
 #' @param KInv D-1 x D-1 symmetric positive-definite matrix
@@ -132,8 +136,8 @@ hessMaltipooCollapsed <- function(Y, upsilon, Theta, X, KInv, U, eta, ell, sylv 
 #'   increasing \code{b1} to 0.99 and decreasing \code{eps_f} by a few orders
 #'   of magnitude
 #' 3. Try relaxing prior assumptions regarding covariance matrix. (e.g., may want
-#' to consider decreasing parameter \code{upsilon} closer to a minimum value of 
-#' D)
+#' to consider decreasing parameter \code{upsilon} towards its minimum
+#' value of zero)
 #' 4. Try adding small amount of jitter (e.g., set \code{jitter=1e-5}) to address
 #'   potential floating point errors. 
 #' @return List containing (all with respect to found optima)
@@ -165,7 +169,8 @@ optimMaltipooCollapsed <- function(Y, upsilon, Theta, X, KInv, U, init, ellinit,
 #' is much more optimized and massively cuts down on repeated calculations.
 #' A more efficient Rcpp module based implementation of these functions
 #' may following if the future. For model details see \code{\link{optimPibbleCollapsed}}
-#' documentation
+#' documentation. The log likelihood omits terms constant in eta (including
+#' the matrix-t and multinomial normalizers); it is not a normalized density.
 #'
 #' @inheritParams optimPibbleCollapsed
 #' @param AInv Inverse of A for LTP (for Pibble defined as 
@@ -210,9 +215,9 @@ optimMaltipooCollapsed <- function(Y, upsilon, Theta, X, KInv, U, init, ellinit,
 #' ThetaX <- Theta%*%X
 #'
 #'
-#' loglikPibbleCollapsed(Y, upsilon, ThetaX, KInv, AInv, Eta)
-#' gradPibbleCollapsed(Y, upsilon, ThetaX, KInv, AInv, Eta)[1:5]
-#' hessPibbleCollapsed(Y, upsilon, ThetaX, KInv, AInv, Eta)[1:5,1:5]
+#' loglikPibbleCollapsed(Y, upsilon - D + 2, ThetaX, KInv, AInv, Eta)
+#' gradPibbleCollapsed(Y, upsilon - D + 2, ThetaX, KInv, AInv, Eta)[1:5]
+#' hessPibbleCollapsed(Y, upsilon - D + 2, ThetaX, KInv, AInv, Eta)[1:5,1:5]
 loglikPibbleCollapsed <- function(Y, upsilon, ThetaX, KInv, AInv, eta, sylv = FALSE) {
     .Call('_fido_loglikPibbleCollapsed', PACKAGE = 'fido', Y, upsilon, ThetaX, KInv, AInv, eta, sylv)
 }
@@ -237,7 +242,11 @@ hessPibbleCollapsed <- function(Y, upsilon, ThetaX, KInv, AInv, eta, sylv = FALS
 #' of covariates. 
 #' 
 #' @param Y D x N matrix of counts
-#' @param upsilon (must be > D)
+#' @param upsilon matrix-t degrees of freedom (must be > 0). This is
+#' \emph{not} the same scale as the \code{upsilon} argument of
+#' \code{\link{pibble}} or \code{\link{uncollapsePibble}}: for an
+#' inverse-Wishart prior with degrees of freedom \code{upsilon}, pass
+#' \code{upsilon - D + 2} here.
 #' @param ThetaX D-1 x N matrix formed by Theta*X (Theta is Prior mean 
 #'    for regression coefficients) 
 #' @param KInv D-1 x D-1 precision matrix (inverse of Xi)
@@ -296,8 +305,8 @@ hessPibbleCollapsed <- function(Y, upsilon, ThetaX, KInv, AInv, eta, sylv = FALS
 #'   increasing \code{b1} to 0.99 and decreasing \code{eps_f} by a few orders
 #'   of magnitude
 #' 3. Try relaxing prior assumptions regarding covariance matrix. (e.g., may want
-#' to consider decreasing parameter \code{upsilon} closer to a minimum value of 
-#' D)
+#' to consider decreasing parameter \code{upsilon} towards its minimum
+#' value of zero)
 #' 4. Try adding small amount of jitter (e.g., set \code{jitter=1e-5}) to address
 #'   potential floating point errors. 
 #' @return List containing (all with respect to found optima)
@@ -326,7 +335,7 @@ hessPibbleCollapsed <- function(Y, upsilon, ThetaX, KInv, AInv, eta, sylv = FALS
 #' sim <- pibble_sim()
 #' 
 #' # Fit model for eta
-#' fit <- optimPibbleCollapsed(sim$Y, sim$upsilon, sim$Theta%*%sim$X, sim$KInv, 
+#' fit <- optimPibbleCollapsed(sim$Y, sim$upsilon - sim$D + 2, sim$Theta%*%sim$X, sim$KInv,
 #'                              sim$AInv, random_pibble_init(sim$Y))  
 optimPibbleCollapsed <- function(Y, upsilon, ThetaX, KInv, AInv, init, n_samples = 2000L, calcGradHess = TRUE, b1 = 0.9, b2 = 0.99, step_size = 0.003, epsilon = 10e-7, eps_f = 1e-10, eps_g = 1e-4, max_iter = 10000L, verbose = FALSE, verbose_rate = 10L, decomp_method = "cholesky", optim_method = "lbfgs", eigvalthresh = 0, jitter = 0, multDirichletBoot = -1.0, useSylv = TRUE, ncores = -1L, seed = -1L) {
     .Call('_fido_optimPibbleCollapsed', PACKAGE = 'fido', Y, upsilon, ThetaX, KInv, AInv, init, n_samples, calcGradHess, b1, b2, step_size, epsilon, eps_f, eps_g, max_iter, verbose, verbose_rate, decomp_method, optim_method, eigvalthresh, jitter, multDirichletBoot, useSylv, ncores, seed)
@@ -346,11 +355,12 @@ optimPibbleCollapsed <- function(Y, upsilon, ThetaX, KInv, AInv, init, n_samples
 #' @param Theta matrix of prior mean of dimension (D-1) x Q
 #' @param Gamma covariance matrix of dimension Q x Q
 #' @param Xi covariance matrix of dimension (D-1) x (D-1)
-#' @param upsilon scalar (must be > D) degrees of freedom for InvWishart prior
+#' @param upsilon scalar (must be > D-2) degrees of freedom for InvWishart prior
 #' @param ret_mean if true then uses posterior mean of Lambda and Sigma 
 #'   corresponding to each sample of eta rather than sampling from 
 #'   posterior of Lambda and Sigma (useful if Laplace approximation
-#'   is not used (or fails) in optimPibbleCollapsed)
+#'   is not used (or fails) in optimPibbleCollapsed). Requires
+#'   \code{upsilon + N > D} so the conditional posterior mean of Sigma exists.
 #' @param seed seed to use for random number generation 
 #' @param ncores (default:-1) number of cores to use, if ncores==-1 then 
 #' uses default from OpenMP typically to use all available cores. 
@@ -359,7 +369,7 @@ optimPibbleCollapsed <- function(Y, upsilon, ThetaX, KInv, AInv, init, n_samples
 #' While the collapsed model is given by:
 #'    \deqn{Y_j \sim \text{Multinomial}(\pi_j)}{Y_j \sim Multinomial(Pi_j)}
 #'    \deqn{\pi_j = \Phi^{-1}(\eta_j)}{Pi_j = Phi^{-1}(Eta_j)}
-#'    \deqn{\eta \sim T_{D-1, N}(\upsilon, \Theta X, K, A)}{Eta \sim T_{D-1, N}(upsilon, Theta*X, K, A)}
+#'    \deqn{\eta \sim T_{D-1, N}(\upsilon-D+2, \Theta X, K, A)}{Eta \sim T_{D-1, N}(upsilon-D+2, Theta*X, K, A)}
 #' Where \eqn{A = I_N + X \Gamma X'}{A = I_N + X * Gamma * X'}, \eqn{K=\Xi}{K = Xi} is a (D-1)x(D-1) covariance 
 #' matrix, \eqn{\Gamma}{Gamma} is a Q x Q covariance matrix, and \eqn{\Phi^{-1}}{Phi^(-1)} is ALRInv_D 
 #' transform. 
@@ -388,7 +398,7 @@ optimPibbleCollapsed <- function(Y, upsilon, ThetaX, KInv, AInv, init, n_samples
 #' sim <- pibble_sim()
 #' 
 #' # Fit model for eta
-#' fit <- optimPibbleCollapsed(sim$Y, sim$upsilon, sim$Theta%*%sim$X, sim$KInv, 
+#' fit <- optimPibbleCollapsed(sim$Y, sim$upsilon - sim$D + 2, sim$Theta%*%sim$X, sim$KInv,
 #'                              sim$AInv, random_pibble_init(sim$Y))  
 #' 
 #' # Finally obtain samples from Lambda and Sigma
@@ -453,7 +463,7 @@ rMatUnitNormal_test2 <- function(n) {
 #' While the collapsed model is given by:
 #'    \deqn{Y_j \sim Multinomial(\pi_j)}{Y_j \sim Multinomial(Pi_j)}
 #'    \deqn{\pi_j = \Phi^{-1}(\eta_j)}{Pi_j = Phi^(-1)(Eta_j)}
-#'    \deqn{\eta \sim T_{D-1, N}(\upsilon, \Theta X, K, A)}{Eta \sim T_(D-1, N)(upsilon, Theta*X, K, A)}
+#'    \deqn{\eta \sim T_{D-1, N}(\upsilon-D+2, \Theta X, K, A)}{Eta \sim T_(D-1, N)(upsilon-D+2, Theta*X, K, A)}
 #' Where \eqn{A = I_N + X \Gamma X'}{A = I_N + X * Gamma * X'}, \eqn{K = \Xi}{K = Xi} is a (D-1)x(D-1) covariance 
 #' matrix, \eqn{\Gamma}{Gamma} is a Q x Q covariance matrix, and \eqn{\Phi^{-1}}{Phi^(-1)} is ALRInv_D 
 #' transform. 
@@ -500,6 +510,10 @@ lmvgamma_deriv <- function(a, p) {
     .Call('_fido_lmvgamma_deriv', PACKAGE = 'fido', a, p)
 }
 
+fido_build_info_cpp <- function() {
+    .Call('_fido_fido_build_info_cpp', PACKAGE = 'fido')
+}
+
 eigen_lap_test <- function(n_samples, m, S, eigvalthresh) {
     .Call('_fido_eigen_lap_test', PACKAGE = 'fido', n_samples, m, S, eigvalthresh)
 }
@@ -508,8 +522,8 @@ cholesky_lap_test <- function(n_samples, m, S, eigvalthresh) {
     .Call('_fido_cholesky_lap_test', PACKAGE = 'fido', n_samples, m, S, eigvalthresh)
 }
 
-LaplaceApproximation_test <- function(n_samples, m, S, decomp_method, eigvalthresh) {
-    .Call('_fido_LaplaceApproximation_test', PACKAGE = 'fido', n_samples, m, S, decomp_method, eigvalthresh)
+LaplaceApproximation_test <- function(n_samples, m, S, decomp_method, eigvalthresh, seed = -1L) {
+    .Call('_fido_LaplaceApproximation_test', PACKAGE = 'fido', n_samples, m, S, decomp_method, eigvalthresh, seed)
 }
 
 alrInv_default_test <- function(eta) {

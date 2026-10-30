@@ -1,8 +1,8 @@
 Package: fido
 Type: Package
 Title: Bayesian Multinomial Logistic Normal Regression
-Version: 1.1.2
-Date: 2025-02-26
+Version: 1.1.5
+Date: 2026-10-29
 Authors@R: c(person("Justin", "Silverman", role=c("aut", "cre"),
                      email = "JustinSilverman@psu.edu"), 
              person("Kim", "Roche", role=("ctb"), 
@@ -18,7 +18,7 @@ Depends: R (>= 4.1.0)
 Imports: Rcpp (>= 0.12.17), dplyr, ggplot2, purrr, tidybayes, rlang,
         tidyr
 LinkingTo: Rcpp, RcppEigen, RcppNumerical, RcppZiggurat, BH
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Suggests: testthat (>= 2.1.0), knitr, rmarkdown, ape, numDeriv,
         LaplacesDemon, MCMCpack, phyloseq
 VignetteBuilder: knitr
@@ -26,9 +26,9 @@ LazyData: true
 BugReports: https://github.com/jsilve24/fido/issues
 Encoding: UTF-8
 NeedsCompilation: yes
-Packaged: 2025-02-26 18:35:40 UTC; jds6696
+Packaged: 2026-10-30 14:02:34 UTC; jds6696
 Author: Justin Silverman [aut, cre],
   Kim Roche [ctb],
   Michelle Nixon [ctb]
 Repository: CRAN
-Date/Publication: 2025-02-27 08:30:02 UTC
+Date/Publication: 2026-10-30 19:30:02 UTC

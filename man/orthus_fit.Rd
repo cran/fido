@@ -21,14 +21,16 @@ orthus(
 \arguments{
 \item{Y}{D x N matrix of counts (if NULL uses priors only)}
 
-\item{Z}{P x N matrix of counts (if NULL uses priors only - must be present/absent
+\item{Z}{P x N matrix of Gaussian observations (if NULL uses priors only - must be present/absent
 if Y is present/absent)}
 
 \item{X}{Q x N matrix of covariates (design matrix) (if NULL uses priors only, must
 be present to sample Eta)}
 
-\item{upsilon}{dof for inverse wishart prior (numeric must be > D)
-(default: D+3)}
+\item{upsilon}{degrees of freedom for the inverse-Wishart prior on Sigma
+(numeric, must be > D+P-2; the prior mean of Sigma exists only if > D+P)
+Values <= D+P require an explicit positive-definite Xi.
+(default: D+P+3)}
 
 \item{Theta}{(D-1+P) x Q matrix of prior mean for regression parameters
 (default: matrix(0, D-1+P, Q))}
@@ -37,10 +39,10 @@ be present to sample Eta)}
 (default: diag(Q))}
 
 \item{Xi}{(D-1+P)x(D-1+P) prior covariance matrix
-(default: ALR transform of diag(1)*(upsilon-D)/2 - this is
-essentially iid on "base scale" using Aitchison terminology)}
+(default: an iid multinomial "base scale" block and independent Gaussian
+coordinates, scaled by upsilon-D-P)}
 
-\item{init}{(D-1) x Q initialization for Eta for optimization}
+\item{init}{(D-1) x N initialization for Eta for optimization}
 
 \item{pars}{character vector of posterior parameters to return}
 
@@ -48,7 +50,7 @@ essentially iid on "base scale" using Aitchison terminology)}
 \code{\link{uncollapsePibble}}}
 }
 \value{
-an object of class pibblefit
+an object of class orthusfit
 }
 \description{
 This function is largely a more user friendly wrapper around
@@ -63,7 +65,15 @@ the parameter \code{n_samples} in the function
 \code{\link{optimPibbleCollapsed}})
 }
 \details{
-the full model is given by:
+\code{upsilon} is the usual inverse-Wishart degrees of freedom for
+the full \code{(D-1+P) x (D-1+P)} covariance Sigma, so the prior mean of
+Sigma is \code{Xi/(upsilon-D-P)} (for \code{upsilon > D+P}). Internally,
+Eta is estimated from its distribution conditional on Z, which is matrix-t
+with \code{upsilon-D+2} degrees of freedom; this conversion is automatic.
+Versions of fido before 1.1.5 used the wrong conversion
+(\code{upsilon+P}); fits made with earlier versions should be refit.
+
+The full model is given by:
 \deqn{Y_j \sim Multinomial(\pi_j)}{Y_j \sim Multinomial(Pi_j)}
 \deqn{\pi_j = \Phi^{-1}(\eta_j)}{Pi_j = Phi^(-1)(Eta_j)}
 \deqn{cbind(\eta, Z) \sim MN_{D-1+P \times N}(\Lambda X, \Sigma, I_N)}{cbind(Eta, Z) \sim MN_{D-1+P x N}(Lambda*X, Sigma, I_N)}

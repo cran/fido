@@ -68,6 +68,7 @@ maltipoo <- function(Y=NULL, X=NULL, upsilon=NULL, Theta=NULL, U=NULL,
   
   # check dimensions
   check_dims(upsilon, 1, "upsilon")
+  if (upsilon <= D-2) stop("upsilon must be greater than D-2 for a proper inverse-Wishart prior on Sigma")
   check_dims(Theta, c(D-1, Q), "Theta")
   check_dims(U, c(P*Q, Q), "Q")
   check_dims(Xi, c(D-1, D-1), "Xi")
@@ -114,7 +115,9 @@ maltipoo <- function(Y=NULL, X=NULL, upsilon=NULL, Theta=NULL, U=NULL,
   K <- solve(Xi)
   
   ## fit collapsed model ##
-  fitc <- optimMaltipooCollapsed(Y, upsilon, Theta, X, K, U, init, ellinit, 
+  # Convert standard inverse-Wishart df to matrix-t df.
+  matrix_t_df <- upsilon - (D-1) + 1
+  fitc <- optimMaltipooCollapsed(Y, matrix_t_df, Theta, X, K, U, init, ellinit,
                                 n_samples, 
                                 calcGradHess, b1, b2, step_size, epsilon, eps_f, 
                                 eps_g, max_iter, verbose, verbose_rate, 

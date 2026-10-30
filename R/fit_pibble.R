@@ -12,7 +12,9 @@
 #' @param Y D x N matrix of counts (if NULL uses priors only)
 #' @param X Q x N matrix of covariates (design matrix) (if NULL uses priors only, must
 #' be present to sample Eta)
-#' @param upsilon dof for inverse wishart prior (numeric must be > D) 
+#' @param upsilon degrees of freedom for the inverse-Wishart prior on Sigma
+#'   (numeric, must be > D-2; the prior mean of Sigma exists only if > D)
+#'   Values <= D require an explicit positive-definite Xi.
 #'   (default: D+3)
 #' @param Theta (D-1) x Q matrix of prior mean for regression parameters
 #'   (default: matrix(0, D-1, Q))
@@ -28,7 +30,20 @@
 #' @param ... arguments passed to \code{\link{optimPibbleCollapsed}} and 
 #'   \code{\link{uncollapsePibble}}
 #' 
-#' @details the full model is given by:
+#' @details \code{upsilon} is the usual inverse-Wishart degrees of freedom, so
+#' the prior mean of Sigma is \code{Xi/(upsilon-D)} (for \code{upsilon > D}).
+#' Larger values give a more concentrated prior on Sigma. Internally this is
+#' converted to the matrix-t degrees of freedom (\code{upsilon-D+2}) used by
+#' the collapsed model; you do not need to do this yourself. (If you call
+#' \code{\link{optimPibbleCollapsed}} directly, you do.)
+#'
+#' Versions of fido before 1.1.5 skipped this conversion when \code{D > 2}, so
+#' the prior used to estimate Eta did not match the prior requested. Fits made
+#' with earlier versions should be refit from the original data and priors.
+#' Log marginal likelihoods from earlier versions were also mis-normalized (for
+#' any \code{D}) and should not be compared with new values.
+#'
+#' The full model is given by:
 #'    \deqn{Y_j \sim Multinomial(\pi_j)}{Y_j \sim Multinomial(Pi_j)} 
 #'    \deqn{\pi_j = \Phi^{-1}(\eta_j)}{Pi_j = Phi^(-1)(Eta_j)}
 #'    \deqn{\eta \sim MN_{D-1 \times N}(\Lambda X, \Sigma, I_N)}{Eta \sim MN_{D-1 x N}(Lambda*X, Sigma, I_N)}
@@ -103,6 +118,7 @@ pibble <- function(Y=NULL, X=NULL, upsilon=NULL, Theta=NULL, Gamma=NULL, Xi=NULL
   
   # check dimensions
   check_dims(upsilon, 1, "upsilon")
+  if (upsilon <= D-2) stop("upsilon must be greater than D-2 for a proper inverse-Wishart prior on Sigma")
   check_dims(Theta, c(D-1, Q), "Theta")
   check_dims(Gamma, c(Q, Q), "Gamma")
   check_dims(Xi, c(D-1, D-1), "Xi")
@@ -165,7 +181,9 @@ pibble <- function(Y=NULL, X=NULL, upsilon=NULL, Theta=NULL, Gamma=NULL, Xi=NULL
   AInv <- chol2inv(chol(diag(N) + t(X) %*% Gamma %*% X))
   if (verbose) cat("Starting Optimization\n")
   ## fit collapsed model ##
-  fitc <- optimPibbleCollapsed(Y, upsilon, Theta%*%X, KInv, AInv, init, n_samples, 
+  # The collapsed API uses matrix-t df; the public prior uses IW df.
+  matrix_t_df <- upsilon - (D-1) + 1
+  fitc <- optimPibbleCollapsed(Y, matrix_t_df, Theta%*%X, KInv, AInv, init, n_samples,
                                 calcGradHess, b1, b2, step_size, epsilon, eps_f, 
                                 eps_g, max_iter, verbose, verbose_rate, 
                                 decomp_method, optim_method, eigvalthresh, 
@@ -283,7 +301,7 @@ refit.pibblefit <- function(m, pars=c("Eta", "Lambda", "Sigma"), ...){
   argl <- list(...)
   argl$pars <- pars
   ml <- as.list(m)
-  for (i in 1:length(argl)){
+  for (i in seq_along(argl)){
     ml[[names(argl)[i]]] <- argl[[i]]
   }
   #argl <- c(ml, argl)

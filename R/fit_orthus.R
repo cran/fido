@@ -11,25 +11,35 @@
 #'  the parameter \code{n_samples} in the function 
 #'  \code{\link{optimPibbleCollapsed}})
 #' @param Y D x N matrix of counts (if NULL uses priors only)
-#' @param Z P x N matrix of counts (if NULL uses priors only - must be present/absent 
+#' @param Z P x N matrix of Gaussian observations (if NULL uses priors only - must be present/absent
 #'  if Y is present/absent)
 #' @param X Q x N matrix of covariates (design matrix) (if NULL uses priors only, must
 #' be present to sample Eta)
-#' @param upsilon dof for inverse wishart prior (numeric must be > D) 
-#'   (default: D+3)
+#' @param upsilon degrees of freedom for the inverse-Wishart prior on Sigma
+#'   (numeric, must be > D+P-2; the prior mean of Sigma exists only if > D+P)
+#'   Values <= D+P require an explicit positive-definite Xi.
+#'   (default: D+P+3)
 #' @param Theta (D-1+P) x Q matrix of prior mean for regression parameters
 #'   (default: matrix(0, D-1+P, Q))
 #' @param Gamma QxQ prior covariance matrix 
 #'   (default: diag(Q))
 #' @param Xi (D-1+P)x(D-1+P) prior covariance matrix
-#'   (default: ALR transform of diag(1)*(upsilon-D)/2 - this is 
-#'   essentially iid on "base scale" using Aitchison terminology)
-#' @param init (D-1) x Q initialization for Eta for optimization
+#'   (default: an iid multinomial "base scale" block and independent Gaussian
+#'   coordinates, scaled by upsilon-D-P)
+#' @param init (D-1) x N initialization for Eta for optimization
 #' @param pars character vector of posterior parameters to return
 #' @param ... arguments passed to \code{\link{optimPibbleCollapsed}} and 
 #'   \code{\link{uncollapsePibble}}
 #' 
-#' @details the full model is given by:
+#' @details \code{upsilon} is the usual inverse-Wishart degrees of freedom for
+#' the full \code{(D-1+P) x (D-1+P)} covariance Sigma, so the prior mean of
+#' Sigma is \code{Xi/(upsilon-D-P)} (for \code{upsilon > D+P}). Internally,
+#' Eta is estimated from its distribution conditional on Z, which is matrix-t
+#' with \code{upsilon-D+2} degrees of freedom; this conversion is automatic.
+#' Versions of fido before 1.1.5 used the wrong conversion
+#' (\code{upsilon+P}); fits made with earlier versions should be refit.
+#'
+#' The full model is given by:
 #'    \deqn{Y_j \sim Multinomial(\pi_j)}{Y_j \sim Multinomial(Pi_j)}  
 #'    \deqn{\pi_j = \Phi^{-1}(\eta_j)}{Pi_j = Phi^(-1)(Eta_j)}
 #'    \deqn{cbind(\eta, Z) \sim MN_{D-1+P \times N}(\Lambda X, \Sigma, I_N)}{cbind(Eta, Z) \sim MN_{D-1+P x N}(Lambda*X, Sigma, I_N)}
@@ -43,7 +53,7 @@
 #'  
 #'  Default behavior is to use MAP estimate for uncollaping the LTP 
 #'  model if laplace approximation is not preformed. 
-#' @return an object of class pibblefit
+#' @return an object of class orthusfit
 #' @md
 #' @name orthus_fit
 #' @examples 
@@ -103,6 +113,7 @@ orthus <- function(Y=NULL, Z=NULL, X=NULL, upsilon=NULL, Theta=NULL, Gamma=NULL,
   
   # check dimensions
   check_dims(upsilon, 1, "upsilon")
+  if (upsilon <= D+P-2) stop("upsilon must be greater than D+P-2 for a proper inverse-Wishart prior on Sigma")
   check_dims(Theta, c(D-1+P, Q), "Theta")
   check_dims(Gamma, c(Q, Q), "Gamma")
   check_dims(Xi, c(D-1+P, D-1+P), "Xi")
@@ -167,7 +178,9 @@ orthus <- function(Y=NULL, Z=NULL, X=NULL, upsilon=NULL, Theta=NULL, Gamma=NULL,
   B <- Theta%*%X
   E2 <- Z - B[two,]
   K22Inv <- chol2inv(chol(K[two,two]))
-  upsilon.star <- upsilon+P
+  # Full matrix-t df is upsilon - (D-1+P) + 1; conditioning on
+  # the P continuous rows adds P to the matrix-t df.
+  upsilon.star <- upsilon - D + 2
   K.star <- K[one,one] - K[one,two] %*% K22Inv %*% K[two,one]
   B.star <- B[one,] + K[one,two] %*% K22Inv %*% E2
   A.star <- A%*%(diag(N) + AInv %*% t(E2) %*% K22Inv %*% E2)

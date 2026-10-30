@@ -27,7 +27,9 @@ pibble(
 \item{X}{Q x N matrix of covariates (design matrix) (if NULL uses priors only, must
 be present to sample Eta)}
 
-\item{upsilon}{dof for inverse wishart prior (numeric must be > D)
+\item{upsilon}{degrees of freedom for the inverse-Wishart prior on Sigma
+(numeric, must be > D-2; the prior mean of Sigma exists only if > D)
+Values <= D require an explicit positive-definite Xi.
 (default: D+3)}
 
 \item{Theta}{(D-1) x Q matrix of prior mean for regression parameters
@@ -66,7 +68,20 @@ the parameter \code{n_samples} in the function
 \code{\link{optimPibbleCollapsed}})
 }
 \details{
-the full model is given by:
+\code{upsilon} is the usual inverse-Wishart degrees of freedom, so
+the prior mean of Sigma is \code{Xi/(upsilon-D)} (for \code{upsilon > D}).
+Larger values give a more concentrated prior on Sigma. Internally this is
+converted to the matrix-t degrees of freedom (\code{upsilon-D+2}) used by
+the collapsed model; you do not need to do this yourself. (If you call
+\code{\link{optimPibbleCollapsed}} directly, you do.)
+
+Versions of fido before 1.1.5 skipped this conversion when \code{D > 2}, so
+the prior used to estimate Eta did not match the prior requested. Fits made
+with earlier versions should be refit from the original data and priors.
+Log marginal likelihoods from earlier versions were also mis-normalized (for
+any \code{D}) and should not be compared with new values.
+
+The full model is given by:
 \deqn{Y_j \sim Multinomial(\pi_j)}{Y_j \sim Multinomial(Pi_j)}
 \deqn{\pi_j = \Phi^{-1}(\eta_j)}{Pi_j = Phi^(-1)(Eta_j)}
 \deqn{\eta \sim MN_{D-1 \times N}(\Lambda X, \Sigma, I_N)}{Eta \sim MN_{D-1 x N}(Lambda*X, Sigma, I_N)}

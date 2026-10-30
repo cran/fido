@@ -28,14 +28,15 @@ function optimPibbleCollapsed)}
 
 \item{Xi}{covariance matrix of dimension (D-1) x (D-1)}
 
-\item{upsilon}{scalar (must be > D) degrees of freedom for InvWishart prior}
+\item{upsilon}{scalar (must be > D-2) degrees of freedom for InvWishart prior}
 
 \item{seed}{seed to use for random number generation}
 
 \item{ret_mean}{if true then uses posterior mean of Lambda and Sigma
 corresponding to each sample of eta rather than sampling from
 posterior of Lambda and Sigma (useful if Laplace approximation
-is not used (or fails) in optimPibbleCollapsed)}
+is not used (or fails) in optimPibbleCollapsed). Requires
+\code{upsilon + N > D} so the conditional posterior mean of Sigma exists.}
 
 \item{ncores}{(default:-1) number of cores to use, if ncores==-1 then
 uses default from OpenMP typically to use all available cores.}
@@ -61,7 +62,7 @@ Notation: Let \eqn{Z_j}{Z_j} denote the J-th row of a matrix Z.
 While the collapsed model is given by:
 \deqn{Y_j \sim \text{Multinomial}(\pi_j)}{Y_j \sim Multinomial(Pi_j)}
 \deqn{\pi_j = \Phi^{-1}(\eta_j)}{Pi_j = Phi^{-1}(Eta_j)}
-\deqn{\eta \sim T_{D-1, N}(\upsilon, \Theta X, K, A)}{Eta \sim T_{D-1, N}(upsilon, Theta*X, K, A)}
+\deqn{\eta \sim T_{D-1, N}(\upsilon-D+2, \Theta X, K, A)}{Eta \sim T_{D-1, N}(upsilon-D+2, Theta*X, K, A)}
 Where \eqn{A = I_N + X \Gamma X'}{A = I_N + X * Gamma * X'}, \eqn{K=\Xi}{K = Xi} is a (D-1)x(D-1) covariance
 matrix, \eqn{\Gamma}{Gamma} is a Q x Q covariance matrix, and \eqn{\Phi^{-1}}{Phi^(-1)} is ALRInv_D
 transform.
@@ -80,7 +81,7 @@ the collapsed model.
 sim <- pibble_sim()
 
 # Fit model for eta
-fit <- optimPibbleCollapsed(sim$Y, sim$upsilon, sim$Theta\%*\%sim$X, sim$KInv, 
+fit <- optimPibbleCollapsed(sim$Y, sim$upsilon - sim$D + 2, sim$Theta\%*\%sim$X, sim$KInv,
                              sim$AInv, random_pibble_init(sim$Y))  
 
 # Finally obtain samples from Lambda and Sigma

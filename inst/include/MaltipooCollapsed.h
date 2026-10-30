@@ -3,6 +3,7 @@
 
 #include <RcppNumerical.h>
 #include <MatrixAlgebra.h>
+#include <MklThreads.h>
 using namespace Rcpp;
 using Eigen::Map;
 using Eigen::MatrixXd;
@@ -220,6 +221,7 @@ class MaltipooCollapsed : public Numer::MFuncGrad
       
       #pragma omp parallel shared(rho_parallel, n_parallel)
       {
+      fido_threads::MklThreadLimit mkl_thread_limit;
       MatrixXd W(D-1, D-1);
       //VectorXd rhoseg(D-1);
       #pragma omp for 
@@ -254,7 +256,7 @@ class MaltipooCollapsed : public Numer::MFuncGrad
     
     // function for use by ADAMOptimizer wrapper (and for RcppNumeric L-BFGS)
     virtual double f_grad(Numer::Constvec& pars, Numer::Refvec grad){
-      const Map<const VectorXd> eta(pars.head(N*(D-1)).data(), N*D-1);
+      const Map<const VectorXd> eta(pars.head(N*(D-1)).data(), N*(D-1));
       const Map<const VectorXd> ell(pars.tail(P).data(), P);
       updateWithEtaLL(eta, ell);    // precompute things needed for LogLik
       updateWithEtaGH();       // precompute things needed for gradient and hessian

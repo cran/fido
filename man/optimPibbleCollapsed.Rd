@@ -35,7 +35,11 @@ optimPibbleCollapsed(
 \arguments{
 \item{Y}{D x N matrix of counts}
 
-\item{upsilon}{(must be > D)}
+\item{upsilon}{matrix-t degrees of freedom (must be > 0). This is
+\emph{not} the same scale as the \code{upsilon} argument of
+\code{\link{pibble}} or \code{\link{uncollapsePibble}}: for an
+inverse-Wishart prior with degrees of freedom \code{upsilon}, pass
+\code{upsilon - D + 2} here.}
 
 \item{ThetaX}{D-1 x N matrix formed by Theta*X (Theta is Prior mean
 for regression coefficients)}
@@ -141,8 +145,8 @@ and increasing \code{max_iter} parameters in optimizer. Also can try
 increasing \code{b1} to 0.99 and decreasing \code{eps_f} by a few orders
 of magnitude
 \item Try relaxing prior assumptions regarding covariance matrix. (e.g., may want
-to consider decreasing parameter \code{upsilon} closer to a minimum value of
-D)
+to consider decreasing parameter \code{upsilon} towards its minimum
+value of zero)
 \item Try adding small amount of jitter (e.g., set \code{jitter=1e-5}) to address
 potential floating point errors.
 }
@@ -151,7 +155,7 @@ potential floating point errors.
 sim <- pibble_sim()
 
 # Fit model for eta
-fit <- optimPibbleCollapsed(sim$Y, sim$upsilon, sim$Theta\%*\%sim$X, sim$KInv, 
+fit <- optimPibbleCollapsed(sim$Y, sim$upsilon - sim$D + 2, sim$Theta\%*\%sim$X, sim$KInv,
                              sim$AInv, random_pibble_init(sim$Y))  
 }
 \references{
